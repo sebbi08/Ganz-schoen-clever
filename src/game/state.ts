@@ -1,3 +1,4 @@
+import { BONUSES, ROUNDS, roundsFor } from './layout'
 import type { BonusId } from './layout'
 import { resolveBonuses } from './bonuses'
 import { createPlayer, earnedBonuses } from './scoring'
@@ -18,6 +19,7 @@ export function createGame(playerCount = 1): GameState {
     ),
     activePlayer: 0,
     round: 1,
+    claimedRounds: [],
     pendingChoices: [],
     notifications: [],
   }
@@ -37,6 +39,7 @@ export type Action =
   | { type: 'renamePlayer'; index: number; name: string }
   | { type: 'selectPlayer'; index: number }
   | { type: 'setRound'; round: number }
+  | { type: 'completeRound' }
   | { type: 'skipChoice' }
   | { type: 'dismissNotification'; id: string }
   | { type: 'resetSheets' }
@@ -180,6 +183,41 @@ function apply(state: GameState, action: Action): GameState {
     case 'setRound':
       return { ...state, round: Math.max(1, action.round) }
 
+    case 'completeRound': {
+      const total = roundsFor(state.players.length)
+      const info = ROUNDS[state.round - 1]
+      const next = Math.min(total, state.round + 1)
+      // Jeder Rundenbonus wird nur einmal verteilt.
+      if (!info?.bonus || state.claimedRounds.includes(state.round)) {
+        return { ...state, round: next }
+      }
+      const origin = `Rundenbonus ${state.round}`
+      return {
+        ...state,
+        round: next,
+        claimedRounds: [...state.claimedRounds, state.round],
+        // Am Ende der Runde bekommt ihn jeder Spieler.
+        players: state.players.map((player) => {
+          const id = nextId('round')
+          return {
+            ...player,
+            manualBonuses: [...player.manualBonuses, { id, bonus: info.bonus!, origin }],
+            // Gleich als verarbeitet markieren, sonst meldet er sich später
+            // noch einmal, sobald der Spieler an der Reihe ist.
+            resolvedBonuses: [...player.resolvedBonuses, id],
+          }
+        }),
+        notifications: [
+          ...state.notifications,
+          {
+            id: nextId('n'),
+            text: `${origin}: ${BONUSES[info.bonus].label} für alle`,
+            tone: BONUSES[info.bonus].color,
+          },
+        ],
+      }
+    }
+
     case 'skipChoice':
       return { ...state, pendingChoices: state.pendingChoices.slice(1) }
 
@@ -193,6 +231,7 @@ function apply(state: GameState, action: Action): GameState {
       return {
         ...state,
         round: 1,
+        claimedRounds: [],
         pendingChoices: [],
         notifications: [],
         players: state.players.map((player) => createPlayer(player.id, player.name)),
@@ -217,6 +256,7 @@ export function migrateState(parsed: GameState): GameState {
     ...parsed,
     activePlayer: Math.min(parsed.activePlayer ?? 0, parsed.players.length - 1),
     round: parsed.round ?? 1,
+    claimedRounds: parsed.claimedRounds ?? [],
     pendingChoices: parsed.pendingChoices ?? [],
     notifications: [],
     players: parsed.players.map((player) => {

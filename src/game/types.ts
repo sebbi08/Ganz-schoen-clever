@@ -44,6 +44,8 @@ export interface GameState {
   players: PlayerState[]
   activePlayer: number
   round: number
+  /** Runden, deren Bonus bereits allen Spielern gutgeschrieben wurde. */
+  claimedRounds: number[]
   /** Offene Zwangsauswahl; solange etwas darin liegt, ist der Block gesperrt. */
   pendingChoices: PendingChoice[]
   /** Kurzmeldungen über verarbeitete Boni. */

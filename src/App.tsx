@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer } from 'react'
-import { ORANGE_STEPS, PURPLE_STEPS, ROUNDS } from './game/layout'
+import { ORANGE_STEPS, PURPLE_STEPS } from './game/layout'
 import type { BonusId } from './game/layout'
 import { scoreSheet } from './game/scoring'
 import {
@@ -88,11 +88,9 @@ export default function App() {
       <RoundBar
         round={state.round}
         playerCount={state.players.length}
+        claimedRounds={state.claimedRounds}
         onSelectRound={(round) => dispatch({ type: 'setRound', round })}
-        onClaimBonus={(roundNumber) => {
-          const bonus = ROUNDS[roundNumber - 1]?.bonus
-          if (bonus) addManual(bonus, `Rundenbonus ${roundNumber}`)
-        }}
+        onComplete={() => dispatch({ type: 'completeRound' })}
       />
 
       <div className="columns">

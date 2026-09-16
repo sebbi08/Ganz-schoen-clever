@@ -30,8 +30,11 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   Leiste mit acht Kreisen. Jeder erhaltene Bonus füllt einen Kreis, ein
   Klick hakt ihn beim Einlösen ab; rechts steht, wie viele noch offen sind.
   Füchse zählen automatisch mit.
-- **Rundenleiste** mit den Rundenboni 1–4; die Rundenzahl richtet sich nach
-  der Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5, 4 Spieler: 4).
+- **Rundenleiste**: „Runde N abschließen" schreibt den Rundenbonus allen
+  Spielern gleichzeitig gut und schaltet weiter. Verteilte Runden bekommen
+  einen Haken, ein zweiter Abschluss zählt nicht doppelt. Die Rundenzahl
+  richtet sich nach der Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5,
+  4 Spieler: 4); Boni gibt es in den Runden 1–4.
 - **Mehrere Spieler** mit eigenem Block, umbenennbar, Punktestand in der
   Spielerleiste.
 - **Gesetzt ist gesetzt**: Ein Kreuz oder eine Zahl lässt sich nicht einzeln
@@ -76,6 +79,10 @@ Wertung und Bonuslogik lesen alles von dort.
 | Orange, Felder 3/5/6/8/10 | Wiederholungswurf · gelbes Kreuz · +1 · Fuchs · lila 6 |
 | Lila, Felder 3–11 | Wiederholungswurf · blaues Kreuz · +1 · gelbes Kreuz · Fuchs · Wiederholungswurf · grünes Kreuz · orange 6 · +1 |
 | Runden 1–4 | Wiederholungswurf · +1 · Wiederholungswurf · beliebiges Kreuz oder eine 6 |
+
+Die Rundenboni gehen am Ende der Runde an **alle** Spieler. Das steht so
+nicht auf dem Block; wer es anders handhabt, ändert `completeRound` in
+`src/game/state.ts`.
 
 ## Veröffentlichen
 

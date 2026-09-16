@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { MAX_HISTORY, createHistory, historyReducer } from './history'
 import type { HistoryAction, HistoryState } from './history'
+import { openBonuses } from './scoring'
 
 function run(...actions: HistoryAction[]): HistoryState {
   return actions.reduce<HistoryState>(
@@ -121,5 +122,61 @@ describe('Verlauf', () => {
       'Spieler 1 · Gelb Reihe 1, Spalte 1',
       'Spieler 2 · Gelb Reihe 1, Spalte 2',
     ])
+  })
+})
+
+describe('Rundenbonus', () => {
+  it('geht beim Abschließen an alle Spieler', () => {
+    const state = run({ type: 'addPlayer' }, { type: 'completeRound' })
+    const bonuses = state.present.players.map((player) =>
+      player.manualBonuses.map((entry) => `${entry.bonus}:${entry.origin}`),
+    )
+    expect(bonuses).toEqual([
+      ['reroll:Rundenbonus 1'],
+      ['reroll:Rundenbonus 1'],
+    ])
+    expect(state.present.round).toBe(2)
+    expect(state.present.claimedRounds).toEqual([1])
+  })
+
+  it('wird pro Runde nur einmal verteilt', () => {
+    let state = run({ type: 'completeRound' })
+    state = historyReducer(state, { type: 'setRound', round: 1 })
+    state = historyReducer(state, { type: 'completeRound' })
+    expect(active(state).manualBonuses).toHaveLength(1)
+    expect(state.present.claimedRounds).toEqual([1])
+  })
+
+  it('landet direkt in der Vorratsleiste', () => {
+    const state = run({ type: 'completeRound' })
+    expect(openBonuses(active(state)).map((entry) => entry.bonus)).toEqual(['reroll'])
+  })
+
+  it('meldet sich per Toast', () => {
+    const state = run({ type: 'completeRound' })
+    expect(state.present.notifications.map((n) => n.text)).toContain(
+      'Rundenbonus 1: Wiederholungswurf für alle',
+    )
+  })
+
+  it('verteilt die Boni der Runden 1 bis 4, danach keine mehr', () => {
+    let state = createHistory(1)
+    for (let i = 0; i < 6; i++) state = historyReducer(state, { type: 'completeRound' })
+    expect(active(state).manualBonuses.map((entry) => entry.bonus)).toEqual([
+      'reroll',
+      'plus1',
+      'reroll',
+      'anyCrossOr6',
+    ])
+    expect(state.present.round).toBe(6)
+  })
+
+  it('lässt sich über den Verlauf zurücknehmen', () => {
+    let state = run({ type: 'completeRound' })
+    expect(active(state).manualBonuses).toHaveLength(1)
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(active(state).manualBonuses).toHaveLength(0)
+    expect(state.present.round).toBe(1)
+    expect(state.present.claimedRounds).toEqual([])
   })
 })

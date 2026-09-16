@@ -52,6 +52,8 @@ export function describe(state: GameState, action: Action): string {
       return `${who}Bonus verfallen lassen`
     case 'setRound':
       return `Runde ${action.round}`
+    case 'completeRound':
+      return `Runde ${state.round} abgeschlossen`
     case 'addPlayer':
       return 'Spieler hinzugefügt'
     case 'removePlayer':
@@ -76,6 +78,7 @@ const UNDOABLE: Action['type'][] = [
   'removeManualBonus',
   'skipChoice',
   'setRound',
+  'completeRound',
   'addPlayer',
   'removePlayer',
 ]
@@ -85,7 +88,8 @@ function changesBoard(before: GameState, after: GameState): boolean {
   return (
     before.players !== after.players ||
     before.pendingChoices !== after.pendingChoices ||
-    before.round !== after.round
+    before.round !== after.round ||
+    before.claimedRounds !== after.claimedRounds
   )
 }
 

@@ -869,3 +869,24 @@ button {
 div.cell {
   cursor: default;
 }
+
+/* Runde, deren Bonus schon verteilt ist */
+
+.round.claimed {
+  opacity: 0.55;
+}
+
+.round.claimed .no::after {
+  content: ' ✓';
+  color: var(--green);
+  font-size: 11px;
+}
+
+.round-done {
+  margin-left: auto;
+}
+
+.round-done:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
