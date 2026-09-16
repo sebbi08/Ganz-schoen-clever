@@ -31,10 +31,11 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   Klick hakt ihn beim Einlösen ab; rechts steht, wie viele noch offen sind.
   Füchse zählen automatisch mit.
 - **Rundenleiste**: „Runde N abschließen" schreibt den Rundenbonus gut und
-  schaltet weiter. Verteilte Runden bekommen
-  einen Haken, ein zweiter Abschluss zählt nicht doppelt. Die Rundenzahl
-  richtet sich nach der Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5,
-  4 Spieler: 4); Boni gibt es in den Runden 1–4.
+  schaltet genau eine Runde weiter – überspringen geht nicht, zurück nur
+  über den Verlauf. Erledigte Runden bekommen einen Haken, nach der letzten
+  Runde ist der Knopf gesperrt. Die Rundenzahl richtet sich nach der
+  Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5, 4 Spieler: 4); Boni
+  gibt es in den Runden 1–4.
 - **Ein Block pro Gerät**: Mitspieler öffnen die Seite selbst, jeder Browser
   führt seinen eigenen Stand. Am Tisch stellt man nur die Spielerzahl ein,
   weil sie die Rundenzahl bestimmt.
