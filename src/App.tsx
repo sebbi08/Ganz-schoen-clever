@@ -2,19 +2,13 @@ import { useCallback, useEffect, useReducer } from 'react'
 import { ORANGE_STEPS, PURPLE_STEPS } from './game/layout'
 import type { BonusId } from './game/layout'
 import { scoreSheet } from './game/scoring'
-import {
-  createHistory,
-  historyReducer,
-  loadHistory,
-  saveHistory,
-} from './game/history'
+import { createHistory, historyReducer, loadHistory, saveHistory } from './game/history'
 import { BlueArea } from './components/BlueArea'
-import { ChoiceBanner } from './components/ChoiceBanner'
-import { HistoryPanel } from './components/HistoryPanel'
 import { BonusPanel } from './components/BonusPanel'
+import { ChoiceBanner } from './components/ChoiceBanner'
 import { GreenRow } from './components/GreenRow'
+import { HistoryPanel } from './components/HistoryPanel'
 import { NumberRow } from './components/NumberRow'
-import { PlayerTabs } from './components/PlayerTabs'
 import { RoundBar } from './components/RoundBar'
 import { ScorePanel } from './components/ScorePanel'
 import { Toasts } from './components/Toasts'
@@ -28,7 +22,7 @@ const PURPLE_BONUSES = PURPLE_STEPS.map((step) => step.bonus)
 export default function App() {
   const [history, dispatch] = useReducer(historyReducer, null, () => loadHistory() ?? createHistory(1))
   const state = history.present
-  const player = state.players[state.activePlayer]
+  const player = state.player
   const score = scoreSheet(player)
   const choice = state.pendingChoices[0] ?? null
   const locked = choice !== null
@@ -39,9 +33,8 @@ export default function App() {
     return choice.bonus === area ? 'pick' : 'locked'
   }
 
-  const dismiss = useCallback((id: string) => dispatch({ type: 'dismissNotification', id }), [])
-
   const undo = useCallback((steps: number) => dispatch({ type: 'undo', steps }), [])
+  const dismiss = useCallback((id: string) => dispatch({ type: 'dismissNotification', id }), [])
 
   useEffect(() => saveHistory(history), [history])
 
@@ -64,8 +57,13 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Ganz schön clever · Punkteblock</h1>
-        <p>Kreuze setzen, Punkte laufen mit, Boni bleiben im Blick.</p>
+        <div>
+          <h1>Ganz schön clever · Punkteblock</h1>
+          <p>Ein Block pro Gerät – Mitspieler öffnen die Seite selbst.</p>
+        </div>
+        <div className="total-badge" title="Gesamtpunkte">
+          {score.total}
+        </div>
       </header>
 
       {choice && (
@@ -76,20 +74,12 @@ export default function App() {
         />
       )}
 
-      <PlayerTabs
-        players={state.players}
-        activePlayer={state.activePlayer}
-        onSelect={(index) => dispatch({ type: 'selectPlayer', index })}
-        onRename={(index, name) => dispatch({ type: 'renamePlayer', index, name })}
-        onAdd={() => dispatch({ type: 'addPlayer' })}
-        onRemove={(index) => dispatch({ type: 'removePlayer', index })}
-      />
-
       <RoundBar
         round={state.round}
-        playerCount={state.players.length}
+        tableSize={state.tableSize}
         claimedRounds={state.claimedRounds}
         onSelectRound={(round) => dispatch({ type: 'setRound', round })}
+        onSetTableSize={(size) => dispatch({ type: 'setTableSize', size })}
         onComplete={() => dispatch({ type: 'completeRound' })}
       />
 
@@ -155,28 +145,16 @@ export default function App() {
 
       <footer className="footer">
         <span>Der Spielstand wird im Browser gespeichert.</span>
-        <span style={{ display: 'flex', gap: 8 }}>
-          <button
-            className="btn danger"
-            onClick={() => {
-              if (confirm('Alle Blöcke leeren? Die Spieler bleiben erhalten.')) {
-                dispatch({ type: 'resetSheets' })
-              }
-            }}
-          >
-            Blöcke leeren
-          </button>
-          <button
-            className="btn danger"
-            onClick={() => {
-              if (confirm('Neues Spiel starten? Der aktuelle Stand geht verloren.')) {
-                dispatch({ type: 'newGame', playerCount: state.players.length })
-              }
-            }}
-          >
-            Neues Spiel
-          </button>
-        </span>
+        <button
+          className="btn danger"
+          onClick={() => {
+            if (confirm('Neues Spiel starten? Der aktuelle Block geht verloren.')) {
+              dispatch({ type: 'newGame' })
+            }
+          }}
+        >
+          Neues Spiel
+        </button>
       </footer>
 
       <Toasts notifications={state.notifications} onDismiss={dismiss} />

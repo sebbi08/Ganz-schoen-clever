@@ -30,16 +30,17 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   Leiste mit acht Kreisen. Jeder erhaltene Bonus füllt einen Kreis, ein
   Klick hakt ihn beim Einlösen ab; rechts steht, wie viele noch offen sind.
   Füchse zählen automatisch mit.
-- **Rundenleiste**: „Runde N abschließen" schreibt den Rundenbonus allen
-  Spielern gleichzeitig gut und schaltet weiter. Verteilte Runden bekommen
+- **Rundenleiste**: „Runde N abschließen" schreibt den Rundenbonus gut und
+  schaltet weiter. Verteilte Runden bekommen
   einen Haken, ein zweiter Abschluss zählt nicht doppelt. Die Rundenzahl
   richtet sich nach der Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5,
   4 Spieler: 4); Boni gibt es in den Runden 1–4.
-- **Mehrere Spieler** mit eigenem Block, umbenennbar, Punktestand in der
-  Spielerleiste.
+- **Ein Block pro Gerät**: Mitspieler öffnen die Seite selbst, jeder Browser
+  führt seinen eigenen Stand. Am Tisch stellt man nur die Spielerzahl ein,
+  weil sie die Rundenzahl bestimmt.
 - **Gesetzt ist gesetzt**: Ein Kreuz oder eine Zahl lässt sich nicht einzeln
   zurücknehmen – wie auf Papier. Korrigiert wird über den **Verlauf**: Er
-  führt die letzten 30 Züge aller Spieler gemeinsam und nimmt auf Klick den
+  führt die letzten 30 Züge und nimmt auf Klick den
   gewählten Zug samt allem danach zurück, inklusive der Boni, die dabei
   ausgelöst wurden. Strg+Z (bzw. Cmd+Z) nimmt den letzten Zug zurück.
 - **Spielstand bleibt erhalten** (localStorage), auch nach dem Neuladen.
@@ -59,7 +60,9 @@ npm run build    # Produktionsbuild nach dist/
 | --- | --- |
 | `src/game/layout.ts` | Der Block als Daten: Raster, Bonusfelder, Multiplikatoren, Punktetabellen, Runden |
 | `src/game/scoring.ts` | Wertung und Ermittlung der freigeschalteten Boni |
-| `src/game/state.ts` | Reducer für Spielzustand plus Speichern im Browser |
+| `src/game/state.ts` | Reducer für den Spielzustand |
+| `src/game/bonuses.ts` | Sofortverarbeitung der Farbboni |
+| `src/game/history.ts` | Verlauf, Rückgängig und Speichern im Browser |
 | `src/components/` | Darstellung der Bereiche, Bonus- und Punktepanel |
 
 Der komplette Blockaufbau steht in `src/game/layout.ts`. Wer eine Variante
@@ -80,9 +83,9 @@ Wertung und Bonuslogik lesen alles von dort.
 | Lila, Felder 3–11 | Wiederholungswurf · blaues Kreuz · +1 · gelbes Kreuz · Fuchs · Wiederholungswurf · grünes Kreuz · orange 6 · +1 |
 | Runden 1–4 | Wiederholungswurf · +1 · Wiederholungswurf · beliebiges Kreuz oder eine 6 |
 
-Die Rundenboni gehen am Ende der Runde an **alle** Spieler. Das steht so
-nicht auf dem Block; wer es anders handhabt, ändert `completeRound` in
-`src/game/state.ts`.
+Die Rundenboni gehen am Ende der Runde an jeden Spieler – hier also an den
+Block dieser Seite. Das steht so nicht auf dem Block; wer es anders
+handhabt, ändert `completeRound` in `src/game/state.ts`.
 
 ## Veröffentlichen
 

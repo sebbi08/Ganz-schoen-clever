@@ -3,14 +3,23 @@ import { BonusChip } from './BonusChip'
 
 interface Props {
   round: number
-  playerCount: number
+  /** Wie viele am Tisch sitzen – bestimmt allein die Rundenzahl. */
+  tableSize: number
   claimedRounds: number[]
   onSelectRound: (round: number) => void
+  onSetTableSize: (size: number) => void
   onComplete: () => void
 }
 
-export function RoundBar({ round, playerCount, claimedRounds, onSelectRound, onComplete }: Props) {
-  const total = roundsFor(playerCount)
+export function RoundBar({
+  round,
+  tableSize,
+  claimedRounds,
+  onSelectRound,
+  onSetTableSize,
+  onComplete,
+}: Props) {
+  const total = roundsFor(tableSize)
   const bonus = ROUNDS[round - 1]?.bonus
   const claimed = claimedRounds.includes(round)
 
@@ -18,6 +27,19 @@ export function RoundBar({ round, playerCount, claimedRounds, onSelectRound, onC
     <div className="panel">
       <h2>
         Runde {round} von {total}
+        <span className="table-size">
+          Am Tisch:
+          {[1, 2, 3, 4].map((size) => (
+            <button
+              key={size}
+              className={`size-btn${size === tableSize ? ' active' : ''}`}
+              onClick={() => onSetTableSize(size)}
+              title={`${size} Spieler → ${roundsFor(size)} Runden`}
+            >
+              {size}
+            </button>
+          ))}
+        </span>
       </h2>
       <div className="rounds">
         {ROUNDS.slice(0, total).map((info, index) => {
@@ -41,7 +63,7 @@ export function RoundBar({ round, playerCount, claimedRounds, onSelectRound, onC
         })}
         <button className="btn round-done" onClick={onComplete} disabled={round >= total && claimed}>
           {bonus && !claimed
-            ? `Runde ${round} abschließen – Bonus für alle →`
+            ? `Runde ${round} abschließen – Bonus kassieren →`
             : `Runde ${round} abschließen →`}
         </button>
       </div>

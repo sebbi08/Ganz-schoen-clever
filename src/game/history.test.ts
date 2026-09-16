@@ -10,7 +10,7 @@ function run(...actions: HistoryAction[]): HistoryState {
   )
 }
 
-const active = (state: HistoryState) => state.present.players[state.present.activePlayer]
+const active = (state: HistoryState) => state.present.player
 
 const yellowRow2: HistoryAction[] = [
   { type: 'toggleYellow', row: 1, col: 0 },
@@ -31,10 +31,9 @@ describe('Verlauf', () => {
   it('nimmt Züge ohne Blockänderung nicht auf', () => {
     const state = run(
       { type: 'toggleYellow', row: 0, col: 0 },
-      { type: 'renamePlayer', index: 0, name: 'Anna' },
+      { type: 'dismissNotification', id: 'gibt-es-nicht' },
     )
     expect(state.past).toHaveLength(1)
-    expect(active(state).name).toBe('Anna')
   })
 
   it('macht den letzten Zug rückgängig', () => {
@@ -104,36 +103,18 @@ describe('Verlauf', () => {
   it('startet mit einem neuen Spiel ohne Verlauf', () => {
     let state = run(...yellowRow2)
     expect(state.past.length).toBeGreaterThan(0)
-    state = historyReducer(state, { type: 'newGame', playerCount: 2 })
+    state = historyReducer(state, { type: 'newGame' })
     expect(state.past).toHaveLength(0)
-    expect(state.present.players).toHaveLength(2)
+    expect(active(state).orange.every((value) => value === null)).toBe(true)
   })
 
-  it('führt den Verlauf über alle Spieler gemeinsam', () => {
-    const state = run(
-      { type: 'addPlayer' },
-      { type: 'selectPlayer', index: 0 },
-      { type: 'toggleYellow', row: 0, col: 0 },
-      { type: 'selectPlayer', index: 1 },
-      { type: 'toggleYellow', row: 0, col: 1 },
-    )
-    expect(state.past.map((entry) => entry.label)).toEqual([
-      'Spieler hinzugefügt',
-      'Spieler 1 · Gelb Reihe 1, Spalte 1',
-      'Spieler 2 · Gelb Reihe 1, Spalte 2',
-    ])
-  })
 })
 
 describe('Rundenbonus', () => {
-  it('geht beim Abschließen an alle Spieler', () => {
-    const state = run({ type: 'addPlayer' }, { type: 'completeRound' })
-    const bonuses = state.present.players.map((player) =>
-      player.manualBonuses.map((entry) => `${entry.bonus}:${entry.origin}`),
-    )
-    expect(bonuses).toEqual([
-      ['reroll:Rundenbonus 1'],
-      ['reroll:Rundenbonus 1'],
+  it('wird beim Abschließen gutgeschrieben', () => {
+    const state = run({ type: 'completeRound' })
+    expect(active(state).manualBonuses.map((entry) => `${entry.bonus}:${entry.origin}`)).toEqual([
+      'reroll:Rundenbonus 1',
     ])
     expect(state.present.round).toBe(2)
     expect(state.present.claimedRounds).toEqual([1])
@@ -155,7 +136,7 @@ describe('Rundenbonus', () => {
   it('meldet sich per Toast', () => {
     const state = run({ type: 'completeRound' })
     expect(state.present.notifications.map((n) => n.text)).toContain(
-      'Rundenbonus 1: Wiederholungswurf für alle',
+      'Rundenbonus 1: Wiederholungswurf',
     )
   })
 

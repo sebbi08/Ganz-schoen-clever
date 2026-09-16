@@ -8,7 +8,7 @@ function run(...actions: Action[]): GameState {
   return actions.reduce<GameState>((state, action) => reducer(state, action), createGame(1))
 }
 
-const active = (state: GameState) => state.players[state.activePlayer]
+const active = (state: GameState) => state.player
 
 /** Gelbe Reihe 1 (3–6–5), Reihe 2 (2–1–5) und Reihe 3 (1–2–4) vervollständigen. */
 const yellowRow1: Action[] = [
@@ -43,19 +43,16 @@ describe('Zahlenboni', () => {
     // Orange von Hand vollschreiben und die dabei fälligen Boni als erledigt
     // markieren, damit sie die Ausgangslage nicht stören.
     const fresh = createGame(1)
-    const base = fresh.players[0]
-    const filled = { ...base, orange: base.orange.map(() => 1) }
+    const filled = { ...fresh.player, orange: fresh.player.orange.map(() => 1) }
     let state: GameState = {
       ...fresh,
-      players: [
-        { ...filled, resolvedBonuses: earnedBonuses(filled).map((entry) => entry.sourceId) },
-      ],
+      player: { ...filled, resolvedBonuses: earnedBonuses(filled).map((entry) => entry.sourceId) },
     }
     state = yellowRow2.reduce<GameState>((s, a) => reducer(s, a), state)
     expect(state.notifications.map((n) => n.text)).toContain(
       'Orange 4 eintragen: Reihe ist voll, Bonus verfällt',
     )
-    expect(active(state).orange.every((value) => value === 1)).toBe(true)
+    expect(active(state).orange.every((value: number | null) => value === 1)).toBe(true)
   })
 })
 

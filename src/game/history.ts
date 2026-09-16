@@ -28,36 +28,29 @@ export type HistoryAction = Action | { type: 'undo'; steps: number }
 
 /** Kurzbeschreibung eines Zuges, gebildet aus dem Zustand davor. */
 export function describe(state: GameState, action: Action): string {
-  const player = state.players[state.activePlayer]
-  const who = state.players.length > 1 ? `${player.name} · ` : ''
-
   switch (action.type) {
     case 'toggleYellow':
-      return `${who}Gelb Reihe ${action.row + 1}, Spalte ${action.col + 1}`
+      return `Gelb Reihe ${action.row + 1}, Spalte ${action.col + 1}`
     case 'toggleBlue':
-      return `${who}Blau Reihe ${action.row + 1}, Spalte ${action.col + 1}`
+      return `Blau Reihe ${action.row + 1}, Spalte ${action.col + 1}`
     case 'setGreen':
-      return `${who}Grün bis Feld ${action.count}`
+      return `Grün bis Feld ${action.count}`
     case 'setOrange':
-      return `${who}Orange Feld ${action.index + 1}${action.value === null ? ' geleert' : ` = ${action.value}`}`
+      return `Orange Feld ${action.index + 1}${action.value === null ? ' geleert' : ` = ${action.value}`}`
     case 'setPurple':
-      return `${who}Lila Feld ${action.index + 1}${action.value === null ? ' geleert' : ` = ${action.value}`}`
+      return `Lila Feld ${action.index + 1}${action.value === null ? ' geleert' : ` = ${action.value}`}`
     case 'toggleBonusUsed':
-      return `${who}Bonus abgehakt`
+      return `Bonus abgehakt`
     case 'addManualBonus':
-      return `${who}${BONUSES[action.bonus].label} ergänzt`
+      return `${BONUSES[action.bonus].label} ergänzt`
     case 'removeManualBonus':
-      return `${who}Bonus entfernt`
+      return `Bonus entfernt`
     case 'skipChoice':
-      return `${who}Bonus verfallen lassen`
+      return `Bonus verfallen lassen`
     case 'setRound':
       return `Runde ${action.round}`
     case 'completeRound':
       return `Runde ${state.round} abgeschlossen`
-    case 'addPlayer':
-      return 'Spieler hinzugefügt'
-    case 'removePlayer':
-      return `${state.players[action.index]?.name ?? 'Spieler'} entfernt`
     default:
       return 'Zug'
   }
@@ -79,14 +72,12 @@ const UNDOABLE: Action['type'][] = [
   'skipChoice',
   'setRound',
   'completeRound',
-  'addPlayer',
-  'removePlayer',
 ]
 
 /** Hat der Zug den Block tatsächlich verändert? */
 function changesBoard(before: GameState, after: GameState): boolean {
   return (
-    before.players !== after.players ||
+    before.player !== after.player ||
     before.pendingChoices !== after.pendingChoices ||
     before.round !== after.round ||
     before.claimedRounds !== after.claimedRounds
@@ -109,7 +100,7 @@ export function historyReducer(state: HistoryState, action: HistoryAction): Hist
   if (present === state.present) return state
 
   // Ein frischer Block startet ohne Verlauf.
-  if (action.type === 'newGame' || action.type === 'resetSheets') {
+  if (action.type === 'newGame') {
     return { present, past: [] }
   }
 
@@ -132,7 +123,9 @@ interface StoredShape {
   present?: GameState
   past?: HistoryEntry[]
   /** Ältere Stände speicherten den Spielzustand direkt. */
-  players?: GameState['players']
+  player?: GameState['player']
+  players?: GameState['player'][]
+  activePlayer?: number
 }
 
 export function loadHistory(): HistoryState | null {
@@ -140,8 +133,8 @@ export function loadHistory(): HistoryState | null {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as StoredShape
-    const present = parsed.present ?? (parsed.players ? (parsed as unknown as GameState) : null)
-    if (!present || !Array.isArray(present.players) || present.players.length === 0) return null
+    const present = parsed.present ?? (parsed.player || parsed.players ? parsed : null)
+    if (!present) return null
     return {
       present: migrateState(present),
       past: (parsed.past ?? []).map((entry) => ({
@@ -162,6 +155,6 @@ export function saveHistory(state: HistoryState): void {
   }
 }
 
-export function createHistory(playerCount = 1): HistoryState {
-  return { present: createGame(playerCount), past: [] }
+export function createHistory(tableSize = 1): HistoryState {
+  return { present: createGame(tableSize), past: [] }
 }

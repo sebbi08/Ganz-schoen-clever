@@ -8,8 +8,6 @@ export interface ManualBonus {
 }
 
 export interface PlayerState {
-  id: string
-  name: string
   /** 4x4; vorgekreuzte Diagonalfelder sind dauerhaft true. */
   yellow: boolean[][]
   /** 3x4; das nicht existierende Feld oben links ist dauerhaft false. */
@@ -41,10 +39,12 @@ export interface Notification {
 }
 
 export interface GameState {
-  players: PlayerState[]
-  activePlayer: number
+  /** Die Seite führt genau einen Block; Mitspieler öffnen sie je selbst. */
+  player: PlayerState
   round: number
-  /** Runden, deren Bonus bereits allen Spielern gutgeschrieben wurde. */
+  /** Nur für die Rundenzahl: wie viele am Tisch sitzen. */
+  tableSize: number
+  /** Runden, deren Bonus bereits gutgeschrieben wurde. */
   claimedRounds: number[]
   /** Offene Zwangsauswahl; solange etwas darin liegt, ist der Block gesperrt. */
   pendingChoices: PendingChoice[]

@@ -17,7 +17,7 @@ import {
 import { BLUE_GRID, ORANGE_STEPS, YELLOW_GRID, roundsFor } from './layout'
 
 function player() {
-  return createPlayer('p1', 'Test')
+  return createPlayer()
 }
 
 function fillBlue(p: ReturnType<typeof player>) {

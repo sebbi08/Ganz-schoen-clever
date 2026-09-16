@@ -39,20 +39,15 @@ function notify(state: GameState, text: string, tone: Notification['tone']): Gam
   }
 }
 
-function updateActive(
+function updatePlayer(
   state: GameState,
   update: (player: PlayerState) => PlayerState,
 ): GameState {
-  return {
-    ...state,
-    players: state.players.map((player, index) =>
-      index === state.activePlayer ? update(player) : player,
-    ),
-  }
+  return { ...state, player: update(state.player) }
 }
 
 function markResolved(state: GameState, sourceId: string): GameState {
-  return updateActive(state, (player) => ({
+  return updatePlayer(state, (player) => ({
     ...player,
     resolvedBonuses: [...player.resolvedBonuses, sourceId],
   }))
@@ -61,7 +56,7 @@ function markResolved(state: GameState, sourceId: string): GameState {
 /** Wickelt genau einen frisch freigeschalteten Bonus ab. */
 function applyBonus(state: GameState, entry: EarnedBonus): GameState {
   const info = BONUSES[entry.bonus]
-  const player = state.players[state.activePlayer]
+  const player = state.player
   let next = markResolved(state, entry.sourceId)
 
   const number = NUMBER_BONUS[entry.bonus]
@@ -70,7 +65,7 @@ function applyBonus(state: GameState, entry: EarnedBonus): GameState {
     if (index === null) {
       return notify(next, `${info.label}: Reihe ist voll, Bonus verfällt`, info.color)
     }
-    next = updateActive(next, (p) => ({
+    next = updatePlayer(next, (p) => ({
       ...p,
       [number.row]: p[number.row].map((value, i) => (i === index ? number.value : value)),
     }))
@@ -82,7 +77,7 @@ function applyBonus(state: GameState, entry: EarnedBonus): GameState {
       if (player.green >= GREEN_STEPS.length) {
         return notify(next, 'Grüne Reihe ist voll, Bonus verfällt', 'green')
       }
-      next = updateActive(next, (p) => ({ ...p, green: p.green + 1 }))
+      next = updatePlayer(next, (p) => ({ ...p, green: p.green + 1 }))
       return notify(next, `Grünes Kreuz → Feld ${player.green + 1}`, 'green')
     }
 
@@ -112,17 +107,17 @@ function applyBonus(state: GameState, entry: EarnedBonus): GameState {
 }
 
 /**
- * Arbeitet alle noch nicht verarbeiteten Boni des aktiven Spielers ab und
- * vergisst Boni wieder, deren Auslöser zurückgenommen wurde.
+ * Arbeitet alle noch nicht verarbeiteten Boni ab und vergisst Boni wieder,
+ * deren Auslöser zurückgenommen wurde.
  */
 export function resolveBonuses(state: GameState): GameState {
   let current = state
 
   // Zurückgenommene Kreuze geben ihren Bonus wieder frei.
-  const player = current.players[current.activePlayer]
+  const player = current.player
   const earnedIds = new Set(earnedBonuses(player).map((entry) => entry.sourceId))
   if (player.resolvedBonuses.some((id) => !earnedIds.has(id))) {
-    current = updateActive(current, (p) => ({
+    current = updatePlayer(current, (p) => ({
       ...p,
       resolvedBonuses: p.resolvedBonuses.filter((id) => earnedIds.has(id)),
     }))
@@ -136,7 +131,7 @@ export function resolveBonuses(state: GameState): GameState {
 
   // Ketten auflösen; die Obergrenze ist eine reine Notbremse.
   for (let guard = 0; guard < 60; guard++) {
-    const active = current.players[current.activePlayer]
+    const active = current.player
     const resolved = new Set(active.resolvedBonuses)
     const pending = new Set(current.pendingChoices.map((choice) => choice.sourceId))
     const entry = earnedBonuses(active).find(

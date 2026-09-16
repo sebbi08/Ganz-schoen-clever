@@ -17,10 +17,8 @@ import type { EarnedBonus, PlayerState, Score } from './types'
 
 /* ------------------------------------------------------------ Grundgerüst */
 
-export function createPlayer(id: string, name: string): PlayerState {
+export function createPlayer(): PlayerState {
   return {
-    id,
-    name,
     // Die Nebendiagonale ist von Anfang an angekreuzt.
     yellow: YELLOW_GRID.map((row) => row.map((cell) => cell === null)),
     blue: BLUE_GRID.map((row) => row.map(() => false)),
