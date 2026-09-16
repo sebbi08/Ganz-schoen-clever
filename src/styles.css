@@ -773,3 +773,55 @@ button {
 .toast.purple { border-left-color: var(--purple); }
 .toast.fox { border-left-color: var(--fox); }
 .toast.neutral { border-left-color: var(--muted); }
+
+/* ----------------------------------------------------------------- Verlauf */
+
+.undo-btn {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.history-row:hover {
+  border-color: var(--muted);
+}
+
+/* Beim Überfahren wird sichtbar, was mit zurückgenommen würde. */
+.history-list li:hover ~ li .history-row {
+  border-color: var(--fox);
+  color: var(--fox);
+}
+
+.history-row .label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Reihenfelder sind reine Anzeige, sobald sie stehen. */
+div.cell {
+  cursor: default;
+}

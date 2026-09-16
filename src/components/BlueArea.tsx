@@ -38,7 +38,7 @@ export function BlueArea({ player, points, mode, onToggle }: Props) {
                 return <div key={colIndex} className="cell empty" aria-hidden />
               }
               const marked = player.blue[rowIndex][colIndex]
-              const disabled = mode === 'locked' || (mode === 'pick' && marked)
+              const disabled = marked || mode === 'locked'
               return (
                 <button
                   key={colIndex}

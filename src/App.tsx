@@ -2,9 +2,15 @@ import { useCallback, useEffect, useReducer } from 'react'
 import { ORANGE_STEPS, PURPLE_STEPS, ROUNDS } from './game/layout'
 import type { BonusId } from './game/layout'
 import { scoreSheet } from './game/scoring'
-import { createGame, loadGame, reducer, saveGame } from './game/state'
+import {
+  createHistory,
+  historyReducer,
+  loadHistory,
+  saveHistory,
+} from './game/history'
 import { BlueArea } from './components/BlueArea'
 import { ChoiceBanner } from './components/ChoiceBanner'
+import { HistoryPanel } from './components/HistoryPanel'
 import { BonusPanel } from './components/BonusPanel'
 import { GreenRow } from './components/GreenRow'
 import { NumberRow } from './components/NumberRow'
@@ -20,7 +26,8 @@ const ORANGE_MULTIPLIERS = ORANGE_STEPS.map((step) => step.multiplier)
 const PURPLE_BONUSES = PURPLE_STEPS.map((step) => step.bonus)
 
 export default function App() {
-  const [state, dispatch] = useReducer(reducer, null, () => loadGame() ?? createGame(1))
+  const [history, dispatch] = useReducer(historyReducer, null, () => loadHistory() ?? createHistory(1))
+  const state = history.present
   const player = state.players[state.activePlayer]
   const score = scoreSheet(player)
   const choice = state.pendingChoices[0] ?? null
@@ -34,19 +41,21 @@ export default function App() {
 
   const dismiss = useCallback((id: string) => dispatch({ type: 'dismissNotification', id }), [])
 
-  useEffect(() => saveGame(state), [state])
+  const undo = useCallback((steps: number) => dispatch({ type: 'undo', steps }), [])
 
-  /** Ein geleertes Feld nimmt auch alle Felder dahinter zurück. */
-  function setRowValue(row: 'orange' | 'purple', index: number, value: number | null) {
-    const type = row === 'orange' ? ('setOrange' as const) : ('setPurple' as const)
-    if (value !== null) {
-      dispatch({ type, index, value })
-      return
+  useEffect(() => saveHistory(history), [history])
+
+  // Strg+Z / Cmd+Z nimmt den letzten Zug zurück.
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+        event.preventDefault()
+        undo(1)
+      }
     }
-    for (let i = player[row].length - 1; i >= index; i--) {
-      if (player[row][i] !== null) dispatch({ type, index: i, value: null })
-    }
-  }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [undo])
 
   function addManual(bonus: BonusId, origin = 'Von Hand ergänzt') {
     dispatch({ type: 'addManualBonus', bonus, origin })
@@ -119,7 +128,7 @@ export default function App() {
             bonuses={ORANGE_BONUSES}
             multipliers={ORANGE_MULTIPLIERS}
             locked={locked}
-            onSet={(index, value) => setRowValue('orange', index, value)}
+            onSet={(index, value) => dispatch({ type: 'setOrange', index, value })}
           />
 
           <NumberRow
@@ -130,12 +139,13 @@ export default function App() {
             values={player.purple}
             bonuses={PURPLE_BONUSES}
             locked={locked}
-            onSet={(index, value) => setRowValue('purple', index, value)}
+            onSet={(index, value) => dispatch({ type: 'setPurple', index, value })}
           />
         </main>
 
         <aside className="sidebar">
           <ScorePanel score={score} />
+          <HistoryPanel past={history.past} onUndo={undo} />
           <BonusPanel
             player={player}
             onToggleUsed={(sourceId) => dispatch({ type: 'toggleBonusUsed', sourceId })}

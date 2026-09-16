@@ -25,9 +25,9 @@ export function GreenRow({ player, points, locked, onSet }: Props) {
               <span className={`above${marked ? ' reached' : ''}`}>{GREEN_POINTS[index + 1]}</span>
               <button
                 className={`cell${marked ? ' marked' : ''}${index === player.green ? ' next' : ''}`}
-                disabled={locked}
-                // Klick auf ein gefülltes Feld nimmt alles ab dort zurück.
-                onClick={() => onSet(marked ? index : index + 1)}
+                // Es geht immer nur ein Feld weiter; zurück nur über den Verlauf.
+                disabled={locked || index !== player.green}
+                onClick={() => onSet(index + 1)}
                 aria-label={`Grünes Feld ${index + 1}`}
                 aria-pressed={marked}
               >

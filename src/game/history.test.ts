@@ -1,0 +1,125 @@
+import { describe, expect, it } from 'vitest'
+import { MAX_HISTORY, createHistory, historyReducer } from './history'
+import type { HistoryAction, HistoryState } from './history'
+
+function run(...actions: HistoryAction[]): HistoryState {
+  return actions.reduce<HistoryState>(
+    (state, action) => historyReducer(state, action),
+    createHistory(1),
+  )
+}
+
+const active = (state: HistoryState) => state.present.players[state.present.activePlayer]
+
+const yellowRow2: HistoryAction[] = [
+  { type: 'toggleYellow', row: 1, col: 0 },
+  { type: 'toggleYellow', row: 1, col: 1 },
+  { type: 'toggleYellow', row: 1, col: 3 },
+]
+
+describe('Verlauf', () => {
+  it('merkt sich jeden Zug, der den Block verändert', () => {
+    const state = run({ type: 'toggleYellow', row: 0, col: 0 }, { type: 'setGreen', count: 1 })
+    expect(state.past).toHaveLength(2)
+    expect(state.past.map((entry) => entry.label)).toEqual([
+      'Gelb Reihe 1, Spalte 1',
+      'Grün bis Feld 1',
+    ])
+  })
+
+  it('nimmt Züge ohne Blockänderung nicht auf', () => {
+    const state = run(
+      { type: 'toggleYellow', row: 0, col: 0 },
+      { type: 'renamePlayer', index: 0, name: 'Anna' },
+    )
+    expect(state.past).toHaveLength(1)
+    expect(active(state).name).toBe('Anna')
+  })
+
+  it('macht den letzten Zug rückgängig', () => {
+    let state = run({ type: 'toggleYellow', row: 0, col: 0 })
+    expect(active(state).yellow[0][0]).toBe(true)
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(active(state).yellow[0][0]).toBe(false)
+    expect(state.past).toHaveLength(0)
+  })
+
+  it('nimmt mehrere Züge auf einmal zurück', () => {
+    let state = run(...yellowRow2)
+    state = historyReducer(state, { type: 'undo', steps: 3 })
+    // Feld 3 der Reihe ist vorgekreuzt und bleibt es auch.
+    expect([active(state).yellow[1][0], active(state).yellow[1][1], active(state).yellow[1][3]])
+      .toEqual([false, false, false])
+    expect(state.past).toHaveLength(0)
+  })
+
+  it('macht auch automatisch eingetragene Boni rückgängig', () => {
+    let state = run(...yellowRow2) // Gelb Reihe 2 → orange 4 wird gesetzt
+    expect(active(state).orange[0]).toBe(4)
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(active(state).orange[0]).toBe(null)
+    expect(active(state).resolvedBonuses).not.toContain('yellow-row-1')
+  })
+
+  it('macht eine offene Zwangsauswahl rückgängig', () => {
+    let state = run(
+      { type: 'toggleYellow', row: 0, col: 0 },
+      { type: 'toggleYellow', row: 0, col: 1 },
+      { type: 'toggleYellow', row: 0, col: 2 },
+    )
+    expect(state.present.pendingChoices).toHaveLength(1)
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(state.present.pendingChoices).toHaveLength(0)
+    expect(active(state).yellow[0][2]).toBe(false)
+  })
+
+  it('bleibt auch bei gesperrtem Block bedienbar', () => {
+    // Die Zwangsauswahl sperrt den Reducer, der Verlauf greift trotzdem.
+    let state = run(
+      { type: 'toggleYellow', row: 0, col: 0 },
+      { type: 'toggleYellow', row: 0, col: 1 },
+      { type: 'toggleYellow', row: 0, col: 2 },
+      { type: 'setGreen', count: 3 },
+    )
+    expect(active(state).green).toBe(0) // gesperrt, also nicht im Verlauf
+    expect(state.past).toHaveLength(3)
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(state.present.pendingChoices).toHaveLength(0)
+  })
+
+  it('läuft bei leerem Verlauf ins Leere', () => {
+    const fresh = createHistory(1)
+    expect(historyReducer(fresh, { type: 'undo', steps: 1 })).toBe(fresh)
+  })
+
+  it('begrenzt die Länge', () => {
+    let state = createHistory(1)
+    for (let index = 0; index < MAX_HISTORY + 12; index++) {
+      state = historyReducer(state, { type: 'setRound', round: (index % 6) + 1 })
+    }
+    expect(state.past).toHaveLength(MAX_HISTORY)
+  })
+
+  it('startet mit einem neuen Spiel ohne Verlauf', () => {
+    let state = run(...yellowRow2)
+    expect(state.past.length).toBeGreaterThan(0)
+    state = historyReducer(state, { type: 'newGame', playerCount: 2 })
+    expect(state.past).toHaveLength(0)
+    expect(state.present.players).toHaveLength(2)
+  })
+
+  it('führt den Verlauf über alle Spieler gemeinsam', () => {
+    const state = run(
+      { type: 'addPlayer' },
+      { type: 'selectPlayer', index: 0 },
+      { type: 'toggleYellow', row: 0, col: 0 },
+      { type: 'selectPlayer', index: 1 },
+      { type: 'toggleYellow', row: 0, col: 1 },
+    )
+    expect(state.past.map((entry) => entry.label)).toEqual([
+      'Spieler hinzugefügt',
+      'Spieler 1 · Gelb Reihe 1, Spalte 1',
+      'Spieler 2 · Gelb Reihe 1, Spalte 2',
+    ])
+  })
+})

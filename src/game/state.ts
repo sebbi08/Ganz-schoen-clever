@@ -3,8 +3,6 @@ import { resolveBonuses } from './bonuses'
 import { createPlayer, earnedBonuses } from './scoring'
 import type { GameState, PlayerState } from './types'
 
-export const STORAGE_KEY = 'gsc-punkteblock-v1'
-
 const DEFAULT_NAMES = ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4', 'Spieler 5', 'Spieler 6']
 
 let idCounter = 0
@@ -211,46 +209,30 @@ function apply(state: GameState, action: Action): GameState {
   }
 }
 
-/* ------------------------------------------------------------- Persistenz */
+/* ------------------------------------------------------ Ältere Spielstände */
 
-export function loadGame(): GameState | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as GameState
-    if (!Array.isArray(parsed.players) || parsed.players.length === 0) return null
-    // Gegen ältere Stände absichern: fehlende Felder auffüllen.
-    return {
-      ...parsed,
-      activePlayer: Math.min(parsed.activePlayer ?? 0, parsed.players.length - 1),
-      round: parsed.round ?? 1,
-      pendingChoices: parsed.pendingChoices ?? [],
-      notifications: [],
-      players: parsed.players.map((player) => {
-        const migrated = {
-          ...player,
-          usedBonuses: player.usedBonuses ?? [],
-          manualBonuses: player.manualBonuses ?? [],
-          resolvedBonuses: player.resolvedBonuses ?? [],
-        }
-        // Ältere Stände kennen die Sofortverarbeitung noch nicht. Ihre bereits
-        // freigeschalteten Boni gelten als erledigt, sonst würden sie beim
-        // ersten Klick alle nachträglich ausgelöst.
-        if (player.resolvedBonuses === undefined) {
-          migrated.resolvedBonuses = earnedBonuses(migrated).map((entry) => entry.sourceId)
-        }
-        return migrated
-      }),
-    }
-  } catch {
-    return null
-  }
-}
-
-export function saveGame(state: GameState): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  } catch {
-    // Privater Modus o. Ä. – dann läuft die App eben ohne Speicherung.
+/** Füllt fehlende Felder auf und macht einen geladenen Stand benutzbar. */
+export function migrateState(parsed: GameState): GameState {
+  return {
+    ...parsed,
+    activePlayer: Math.min(parsed.activePlayer ?? 0, parsed.players.length - 1),
+    round: parsed.round ?? 1,
+    pendingChoices: parsed.pendingChoices ?? [],
+    notifications: [],
+    players: parsed.players.map((player) => {
+      const migrated = {
+        ...player,
+        usedBonuses: player.usedBonuses ?? [],
+        manualBonuses: player.manualBonuses ?? [],
+        resolvedBonuses: player.resolvedBonuses ?? [],
+      }
+      // Stände von vor der Sofortverarbeitung: bereits freigeschaltete Boni
+      // gelten als erledigt, sonst würden sie beim ersten Klick alle
+      // nachträglich auslösen.
+      if (player.resolvedBonuses === undefined) {
+        migrated.resolvedBonuses = earnedBonuses(migrated).map((entry) => entry.sourceId)
+      }
+      return migrated
+    }),
   }
 }

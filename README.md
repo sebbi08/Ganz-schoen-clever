@@ -32,9 +32,11 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   der Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5, 4 Spieler: 4).
 - **Mehrere Spieler** mit eigenem Block, umbenennbar, Punktestand in der
   Spielerleiste.
-- **Alles rücknehmbar**: Ein Klick auf ein gesetztes Kreuz nimmt es zurück,
-  Boni verschwinden dann automatisch wieder. Ein geleertes Feld in Orange
-  oder Lila leert auch alle Felder dahinter.
+- **Gesetzt ist gesetzt**: Ein Kreuz oder eine Zahl lässt sich nicht einzeln
+  zurücknehmen – wie auf Papier. Korrigiert wird über den **Verlauf**: Er
+  führt die letzten 30 Züge aller Spieler gemeinsam und nimmt auf Klick den
+  gewählten Zug samt allem danach zurück, inklusive der Boni, die dabei
+  ausgelöst wurden. Strg+Z (bzw. Cmd+Z) nimmt den letzten Zug zurück.
 - **Spielstand bleibt erhalten** (localStorage), auch nach dem Neuladen.
 
 ## Entwicklung

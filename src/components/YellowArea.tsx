@@ -33,9 +33,8 @@ export function YellowArea({ player, points, mode, onToggle }: Props) {
             {row.map((value, colIndex) => {
               const locked = isYellowLocked(rowIndex, colIndex)
               const marked = player.yellow[rowIndex][colIndex]
-              // Bei erzwungener Auswahl sind nur noch freie Felder anklickbar.
-              const disabled =
-                locked || mode === 'locked' || (mode === 'pick' && marked)
+              // Gesetzte Kreuze stehen; zurück geht es nur über den Verlauf.
+              const disabled = locked || marked || mode === 'locked'
               return (
                 <button
                   key={colIndex}
