@@ -78,7 +78,6 @@ export default function App() {
         round={state.round}
         tableSize={state.tableSize}
         claimedRounds={state.claimedRounds}
-        onSelectRound={(round) => dispatch({ type: 'setRound', round })}
         onSetTableSize={(size) => dispatch({ type: 'setTableSize', size })}
         onComplete={() => dispatch({ type: 'completeRound' })}
       />

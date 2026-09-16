@@ -47,8 +47,6 @@ export function describe(state: GameState, action: Action): string {
       return `Bonus entfernt`
     case 'skipChoice':
       return `Bonus verfallen lassen`
-    case 'setRound':
-      return `Runde ${action.round}`
     case 'completeRound':
       return `Runde ${state.round} abgeschlossen`
     default:
@@ -70,7 +68,6 @@ const UNDOABLE: Action['type'][] = [
   'addManualBonus',
   'removeManualBonus',
   'skipChoice',
-  'setRound',
   'completeRound',
 ]
 

@@ -95,7 +95,7 @@ describe('Verlauf', () => {
   it('begrenzt die Länge', () => {
     let state = createHistory(1)
     for (let index = 0; index < MAX_HISTORY + 12; index++) {
-      state = historyReducer(state, { type: 'setRound', round: (index % 6) + 1 })
+      state = historyReducer(state, { type: 'addManualBonus', bonus: 'fox', origin: 'Test' })
     }
     expect(state.past).toHaveLength(MAX_HISTORY)
   })
@@ -122,7 +122,12 @@ describe('Rundenbonus', () => {
 
   it('wird pro Runde nur einmal verteilt', () => {
     let state = run({ type: 'completeRound' })
-    state = historyReducer(state, { type: 'setRound', round: 1 })
+    // Über die Oberfläche kommt man nicht zurück; der Riegel sichert den
+    // Fall trotzdem ab.
+    state = historyReducer(state, {
+      type: 'replace',
+      state: { ...state.present, round: 1 },
+    })
     state = historyReducer(state, { type: 'completeRound' })
     expect(active(state).manualBonuses).toHaveLength(1)
     expect(state.present.claimedRounds).toEqual([1])
@@ -150,6 +155,18 @@ describe('Rundenbonus', () => {
       'anyCrossOr6',
     ])
     expect(state.present.round).toBe(6)
+  })
+
+  it('schaltet immer nur eine Runde weiter und bleibt am Ende stehen', () => {
+    let state = createHistory(4) // vier Spieler → vier Runden
+    const verlauf: number[] = []
+    for (let index = 0; index < 6; index++) {
+      state = historyReducer(state, { type: 'completeRound' })
+      verlauf.push(state.present.round)
+    }
+    expect(verlauf).toEqual([2, 3, 4, 4, 4, 4])
+    // Der Bonus der letzten Runde wird trotzdem nur einmal verteilt.
+    expect(active(state).manualBonuses.filter((e) => e.origin === 'Rundenbonus 4')).toHaveLength(1)
   })
 
   it('lässt sich über den Verlauf zurücknehmen', () => {

@@ -31,7 +31,6 @@ export type Action =
   | { type: 'addManualBonus'; bonus: BonusId; origin: string }
   | { type: 'removeManualBonus'; id: string }
   | { type: 'setTableSize'; size: number }
-  | { type: 'setRound'; round: number }
   | { type: 'completeRound' }
   | { type: 'skipChoice' }
   | { type: 'dismissNotification'; id: string }
@@ -133,9 +132,6 @@ function apply(state: GameState, action: Action): GameState {
 
     case 'setTableSize':
       return { ...state, tableSize: Math.min(4, Math.max(1, action.size)) }
-
-    case 'setRound':
-      return { ...state, round: Math.max(1, action.round) }
 
     case 'completeRound': {
       const total = roundsFor(state.tableSize)
