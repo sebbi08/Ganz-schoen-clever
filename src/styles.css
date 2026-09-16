@@ -662,3 +662,114 @@ button {
     height: 38px;
   }
 }
+
+/* ---------------------------------------------------------- Zwangsauswahl */
+
+.choice-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid;
+  background: var(--panel);
+  position: sticky;
+  top: 8px;
+  z-index: 30;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+.choice-banner.yellow { border-color: var(--yellow); }
+.choice-banner.blue { border-color: var(--blue); }
+
+.choice-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex: none;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.choice-banner.yellow .choice-dot { background: var(--yellow); }
+.choice-banner.blue .choice-dot { background: var(--blue); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice-dot { animation: none; }
+}
+
+.choice-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.choice-text span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Gesperrte und angeforderte Bereiche */
+
+.area.locked {
+  opacity: 0.4;
+}
+
+.area.picking {
+  box-shadow: 0 0 0 2px currentColor;
+}
+
+.area.picking.yellow { color: var(--yellow); }
+.area.picking.blue { color: var(--blue); }
+
+/* Wählbare Felder bekommen einen Ring statt zu blinken. */
+.area.picking .cell:not(:disabled) {
+  box-shadow: 0 0 0 2px currentColor;
+}
+
+/* ------------------------------------------------------------------ Toasts */
+
+.toasts {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 6px;
+  width: min(420px, calc(100vw - 24px));
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 9px;
+  padding: 9px 12px;
+  font-size: 13px;
+  background: var(--panel-2);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  animation: toast-in 0.18s ease-out;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.toast.yellow { border-left-color: var(--yellow); }
+.toast.blue { border-left-color: var(--blue); }
+.toast.green { border-left-color: var(--green); }
+.toast.orange { border-left-color: var(--orange); }
+.toast.purple { border-left-color: var(--purple); }
+.toast.fox { border-left-color: var(--fox); }
+.toast.neutral { border-left-color: var(--muted); }

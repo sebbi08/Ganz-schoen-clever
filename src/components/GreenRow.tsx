@@ -5,12 +5,13 @@ import { BonusChip } from './BonusChip'
 interface Props {
   player: PlayerState
   points: number
+  locked: boolean
   onSet: (count: number) => void
 }
 
-export function GreenRow({ player, points, onSet }: Props) {
+export function GreenRow({ player, points, locked, onSet }: Props) {
   return (
-    <section className="area green">
+    <section className={`area green${locked ? ' locked' : ''}`}>
       <div className="area-head">
         <span>Grün – von links nach rechts ankreuzen</span>
         <span className="points">{points}</span>
@@ -24,6 +25,7 @@ export function GreenRow({ player, points, onSet }: Props) {
               <span className={`above${marked ? ' reached' : ''}`}>{GREEN_POINTS[index + 1]}</span>
               <button
                 className={`cell${marked ? ' marked' : ''}${index === player.green ? ' next' : ''}`}
+                disabled={locked}
                 // Klick auf ein gefülltes Feld nimmt alles ab dort zurück.
                 onClick={() => onSet(marked ? index : index + 1)}
                 aria-label={`Grünes Feld ${index + 1}`}

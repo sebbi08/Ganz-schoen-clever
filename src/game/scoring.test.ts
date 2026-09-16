@@ -177,12 +177,13 @@ describe('Füchse', () => {
 })
 
 describe('offene Boni', () => {
-  it('blendet abgehakte Boni und Füchse aus', () => {
+  it('führt nur den Vorrat, keine Farbboni und keine Füchse', () => {
     const p = player()
-    p.yellow[0] = [true, true, true, true] // blaues Kreuz
-    p.yellow[3] = [true, true, true, true] // Fuchs
-    expect(openBonuses(p)).toHaveLength(1)
-    p.usedBonuses = ['yellow-row-0']
+    // Grün bis Feld 7: +1 (Vorrat), blaues Kreuz (Farbbonus) und ein Fuchs.
+    p.green = 7
+    const open = openBonuses(p)
+    expect(open.map((entry) => entry.bonus)).toEqual(['plus1'])
+    p.usedBonuses = ['green-3']
     expect(openBonuses(p)).toHaveLength(0)
   })
 

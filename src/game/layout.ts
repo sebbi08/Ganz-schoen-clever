@@ -28,8 +28,13 @@ export interface BonusInfo {
   label: string
   /** Kurzzeichen für die Bonus-Chips. */
   short: string
-  /** fox = wird automatisch gezählt, action = Vorrat, mark = sofort eintragen. */
-  kind: 'fox' | 'action' | 'mark'
+  /**
+   * fox    = wird automatisch gezählt
+   * action = Vorrat, wird später eingelöst (Wiederholungswurf, +1)
+   * mark   = Farbbonus, wird sofort verarbeitet
+   * manual = mehrdeutig, bleibt zum Abhaken in der Liste
+   */
+  kind: 'fox' | 'action' | 'mark' | 'manual'
   /** Farbgebung des Chips. */
   color: 'neutral' | 'fox' | 'yellow' | 'blue' | 'green' | 'orange' | 'purple'
 }
@@ -48,7 +53,7 @@ export const BONUSES: Record<BonusId, BonusInfo> = {
   anyCrossOr6: {
     label: 'Beliebiges Kreuz oder eine 6',
     short: '✗/6',
-    kind: 'mark',
+    kind: 'manual',
     color: 'neutral',
   },
 }
@@ -188,5 +193,13 @@ export function roundsFor(playerCount: number): number {
   return ROUNDS.filter((round) => playerCount <= round.maxPlayers).length
 }
 
-/** Anzahl der Vorratsfelder für Wiederholungswürfe und +1 auf dem Block. */
-export const SUPPLY_SLOTS = 8
+/** Farbboni, die eine freie Wahl im Raster verlangen. */
+export type PickBonus = 'yellow' | 'blue'
+
+/** Zahlenboni: Wert, der direkt in die jeweilige Reihe geschrieben wird. */
+export const NUMBER_BONUS: Partial<Record<BonusId, { row: 'orange' | 'purple'; value: number }>> = {
+  orange4: { row: 'orange', value: 4 },
+  orange5: { row: 'orange', value: 5 },
+  orange6: { row: 'orange', value: 6 },
+  purple6: { row: 'purple', value: 6 },
+}

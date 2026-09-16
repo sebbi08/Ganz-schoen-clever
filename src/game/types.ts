@@ -1,4 +1,4 @@
-import type { BonusId } from './layout'
+import type { BonusId, BonusInfo, PickBonus } from './layout'
 
 export interface ManualBonus {
   /** Woher der Bonus kommt, z. B. "Rundenbonus 2". */
@@ -19,16 +19,35 @@ export interface PlayerState {
   /** Eingetragene Würfelwerte, `null` = noch leer. */
   orange: (number | null)[]
   purple: (number | null)[]
-  /** Bereits eingelöste Boni (sourceId). */
+  /** Farbboni, die bereits sofort verarbeitet wurden (sourceId). */
+  resolvedBonuses: string[]
+  /** Eingelöste Vorratsboni: Wiederholungswurf, +1 (sourceId). */
   usedBonuses: string[]
   /** Von Hand ergänzte Boni, z. B. Rundenboni. */
   manualBonuses: ManualBonus[]
+}
+
+/** Ein Farbbonus, der eine freie Wahl im gelben oder blauen Raster verlangt. */
+export interface PendingChoice {
+  sourceId: string
+  bonus: PickBonus
+  origin: string
+}
+
+export interface Notification {
+  id: string
+  text: string
+  tone: BonusInfo['color']
 }
 
 export interface GameState {
   players: PlayerState[]
   activePlayer: number
   round: number
+  /** Offene Zwangsauswahl; solange etwas darin liegt, ist der Block gesperrt. */
+  pendingChoices: PendingChoice[]
+  /** Kurzmeldungen über verarbeitete Boni. */
+  notifications: Notification[]
 }
 
 export interface EarnedBonus {

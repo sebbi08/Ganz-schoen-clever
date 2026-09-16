@@ -1,4 +1,5 @@
 import {
+  BONUSES,
   BLUE_COLUMN_BONUS,
   BLUE_GRID,
   BLUE_POINTS,
@@ -26,6 +27,7 @@ export function createPlayer(id: string, name: string): PlayerState {
     green: 0,
     orange: ORANGE_STEPS.map(() => null),
     purple: PURPLE_STEPS.map(() => null),
+    resolvedBonuses: [],
     usedBonuses: [],
     manualBonuses: [],
   }
@@ -189,13 +191,28 @@ export function foxCount(player: PlayerState): number {
 }
 
 /**
- * Offene Boni: alles außer Füchsen, das noch nicht abgehakt wurde.
- * Füchse zählen automatisch und tauchen hier nicht auf.
+ * Vorrat: Boni, die nicht sofort verarbeitet werden, sondern liegen bleiben,
+ * bis man sie einlöst – Wiederholungswürfe, +1 und der mehrdeutige
+ * Rundenbonus. Farbboni und Füchse tauchen hier nicht auf, die laufen
+ * automatisch durch (siehe bonuses.ts).
  */
 export function openBonuses(player: PlayerState): EarnedBonus[] {
   const used = new Set(player.usedBonuses)
-  return earnedBonuses(player).filter(
-    (entry) => entry.bonus !== 'fox' && !used.has(entry.sourceId),
+  return earnedBonuses(player).filter((entry) => {
+    const kind = BONUSES[entry.bonus].kind
+    return (kind === 'action' || kind === 'manual') && !used.has(entry.sourceId)
+  })
+}
+
+/** Gibt es im gelben Raster noch ein freies Feld? */
+export function hasFreeYellow(player: PlayerState): boolean {
+  return player.yellow.some((row) => row.some((cell) => !cell))
+}
+
+/** Gibt es im blauen Raster noch ein freies Feld? */
+export function hasFreeBlue(player: PlayerState): boolean {
+  return player.blue.some((row, rowIndex) =>
+    row.some((cell, col) => !isBlueGap(rowIndex, col) && !cell),
   )
 }
 

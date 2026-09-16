@@ -12,6 +12,7 @@ interface Props {
   values: (number | null)[]
   bonuses: (BonusId | undefined)[]
   multipliers?: (1 | 2 | 3)[]
+  locked: boolean
   /** Setzt einen Wert; `null` leert das Feld und alle dahinter. */
   onSet: (index: number, value: number | null) => void
 }
@@ -25,6 +26,7 @@ export function NumberRow({
   values,
   bonuses,
   multipliers,
+  locked,
   onSet,
 }: Props) {
   // null = automatisch das nächste freie Feld
@@ -41,7 +43,7 @@ export function NumberRow({
   }
 
   return (
-    <section className={`area ${color}`}>
+    <section className={`area ${color}${locked ? ' locked' : ''}`}>
       <div className="area-head">
         <span>{title}</span>
         <span className="points">{points}</span>
@@ -57,7 +59,7 @@ export function NumberRow({
               <span className="mult">{multiplier > 1 ? `×${multiplier}` : ''}</span>
               <button
                 className={`cell${index === target ? ' next' : ''}`}
-                disabled={!selectable}
+                disabled={locked || !selectable}
                 onClick={() => setSelected(index === selected ? null : index)}
                 aria-label={`${label} Feld ${index + 1}`}
               >
@@ -87,7 +89,7 @@ export function NumberRow({
           <button
             key={value}
             className="value-btn"
-            disabled={target === null}
+            disabled={locked || target === null}
             onClick={() => write(value)}
             aria-label={`${label}: ${value} eintragen`}
           >
@@ -96,7 +98,7 @@ export function NumberRow({
         ))}
         <button
           className="btn ghost"
-          disabled={last === null}
+          disabled={locked || last === null}
           onClick={() => {
             if (last === null) return
             onSet(selected !== null && values[selected] !== null ? selected : last, null)

@@ -3,17 +3,20 @@ import { blueMarkCount, isBlueGap } from '../game/scoring'
 import type { PlayerState } from '../game/types'
 import { BonusChip } from './BonusChip'
 
+import type { AreaMode } from './YellowArea'
+
 interface Props {
   player: PlayerState
   points: number
+  mode: AreaMode
   onToggle: (row: number, col: number) => void
 }
 
-export function BlueArea({ player, points, onToggle }: Props) {
+export function BlueArea({ player, points, mode, onToggle }: Props) {
   const count = blueMarkCount(player)
 
   return (
-    <section className="area blue">
+    <section className={`area blue${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}>
       <div className="area-head">
         <span>Blau – Punkte nach Anzahl der Kreuze</span>
         <span className="points">{points}</span>
@@ -35,10 +38,12 @@ export function BlueArea({ player, points, onToggle }: Props) {
                 return <div key={colIndex} className="cell empty" aria-hidden />
               }
               const marked = player.blue[rowIndex][colIndex]
+              const disabled = mode === 'locked' || (mode === 'pick' && marked)
               return (
                 <button
                   key={colIndex}
                   className={`cell${marked ? ' marked' : ''}`}
+                  disabled={disabled}
                   onClick={() => onToggle(rowIndex, colIndex)}
                   aria-label={`Blau ${value}`}
                   aria-pressed={marked}

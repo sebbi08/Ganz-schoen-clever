@@ -8,17 +8,20 @@ import { isYellowDiagonalComplete, isYellowLocked } from '../game/scoring'
 import type { PlayerState } from '../game/types'
 import { BonusChip } from './BonusChip'
 
+export type AreaMode = 'normal' | 'pick' | 'locked'
+
 interface Props {
   player: PlayerState
   points: number
+  mode: AreaMode
   onToggle: (row: number, col: number) => void
 }
 
-export function YellowArea({ player, points, onToggle }: Props) {
+export function YellowArea({ player, points, mode, onToggle }: Props) {
   const columnDone = YELLOW_COLUMN_POINTS.map((_, col) => player.yellow.every((row) => row[col]))
 
   return (
-    <section className="area yellow">
+    <section className={`area yellow${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}>
       <div className="area-head">
         <span>Gelb – volle Spalten geben Punkte, volle Reihen einen Bonus</span>
         <span className="points">{points}</span>
@@ -30,11 +33,14 @@ export function YellowArea({ player, points, onToggle }: Props) {
             {row.map((value, colIndex) => {
               const locked = isYellowLocked(rowIndex, colIndex)
               const marked = player.yellow[rowIndex][colIndex]
+              // Bei erzwungener Auswahl sind nur noch freie Felder anklickbar.
+              const disabled =
+                locked || mode === 'locked' || (mode === 'pick' && marked)
               return (
                 <button
                   key={colIndex}
                   className={`cell${marked ? ' marked' : ''}${locked ? ' locked' : ''}`}
-                  disabled={locked}
+                  disabled={disabled}
                   onClick={() => onToggle(rowIndex, colIndex)}
                   aria-label={`Gelb Reihe ${rowIndex + 1} Spalte ${colIndex + 1}`}
                   aria-pressed={marked}

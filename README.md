@@ -15,10 +15,19 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
 - **Automatische Wertung**: gelbe Spalten (10/14/16/20), blaue Punktetabelle
   nach Anzahl der Kreuze, grüne Dreieckszahlen, orange mit Multiplikatoren,
   lila als Summe – plus Füchse × schwächster Farbbereich.
-- **Bonusverfolgung**: Jeder Bonus, den ein Kreuz freischaltet, erscheint als
-  offener Eintrag mit Herkunft ("Grün – Feld 7") und wird per Klick abgehakt.
-  Wiederholungswürfe und +1 stehen zusätzlich als Vorratszähler oben.
-  Füchse zählen automatisch und tauchen nicht in der Liste auf.
+- **Farbboni werden sofort verarbeitet**, so wie am Tisch auch:
+  - *Zahlenboni* (orange 4/5/6, lila 6) landen direkt im nächsten freien Feld
+    der Reihe. Ein Toast sagt, was wohin geschrieben wurde.
+  - *Grünes Kreuz* rückt die grüne Reihe ein Feld weiter – dort gibt es
+    ohnehin nur ein legales Ziel.
+  - *Gelbes und blaues Kreuz* sind frei wählbar und werden deshalb als
+    Zwangsauswahl gestellt: Der Block ist gesperrt, nur der geforderte
+    Bereich reagiert, und erst das gesetzte Kreuz gibt ihn wieder frei.
+    Wer sich verklickt hat, lässt den Bonus über den Banner verfallen.
+  - Ketten lösen sich von selbst auf: Schreibt ein Bonus in ein Feld, das
+    seinerseits einen Bonus trägt, wird auch der sofort abgearbeitet.
+- **Vorrat und Füchse**: Wiederholungswürfe und +1 bleiben als Liste stehen,
+  bis man sie einlöst. Füchse zählen automatisch mit.
 - **Rundenleiste** mit den Rundenboni 1–4; die Rundenzahl richtet sich nach
   der Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5, 4 Spieler: 4).
 - **Mehrere Spieler** mit eigenem Block, umbenennbar, Punktestand in der

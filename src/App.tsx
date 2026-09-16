@@ -1,16 +1,19 @@
-import { useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
 import { ORANGE_STEPS, PURPLE_STEPS, ROUNDS } from './game/layout'
 import type { BonusId } from './game/layout'
 import { scoreSheet } from './game/scoring'
 import { createGame, loadGame, reducer, saveGame } from './game/state'
 import { BlueArea } from './components/BlueArea'
+import { ChoiceBanner } from './components/ChoiceBanner'
 import { BonusPanel } from './components/BonusPanel'
 import { GreenRow } from './components/GreenRow'
 import { NumberRow } from './components/NumberRow'
 import { PlayerTabs } from './components/PlayerTabs'
 import { RoundBar } from './components/RoundBar'
 import { ScorePanel } from './components/ScorePanel'
+import { Toasts } from './components/Toasts'
 import { YellowArea } from './components/YellowArea'
+import type { AreaMode } from './components/YellowArea'
 
 const ORANGE_BONUSES = ORANGE_STEPS.map((step) => step.bonus)
 const ORANGE_MULTIPLIERS = ORANGE_STEPS.map((step) => step.multiplier)
@@ -20,6 +23,16 @@ export default function App() {
   const [state, dispatch] = useReducer(reducer, null, () => loadGame() ?? createGame(1))
   const player = state.players[state.activePlayer]
   const score = scoreSheet(player)
+  const choice = state.pendingChoices[0] ?? null
+  const locked = choice !== null
+
+  // Bei erzwungener Auswahl ist nur der geforderte Bereich bedienbar.
+  const areaMode = (area: 'yellow' | 'blue'): AreaMode => {
+    if (!choice) return 'normal'
+    return choice.bonus === area ? 'pick' : 'locked'
+  }
+
+  const dismiss = useCallback((id: string) => dispatch({ type: 'dismissNotification', id }), [])
 
   useEffect(() => saveGame(state), [state])
 
@@ -46,6 +59,14 @@ export default function App() {
         <p>Kreuze setzen, Punkte laufen mit, Boni bleiben im Blick.</p>
       </header>
 
+      {choice && (
+        <ChoiceBanner
+          choice={choice}
+          remaining={state.pendingChoices.length}
+          onSkip={() => dispatch({ type: 'skipChoice' })}
+        />
+      )}
+
       <PlayerTabs
         players={state.players}
         activePlayer={state.activePlayer}
@@ -71,11 +92,13 @@ export default function App() {
             <YellowArea
               player={player}
               points={score.yellow}
+              mode={areaMode('yellow')}
               onToggle={(row, col) => dispatch({ type: 'toggleYellow', row, col })}
             />
             <BlueArea
               player={player}
               points={score.blue}
+              mode={areaMode('blue')}
               onToggle={(row, col) => dispatch({ type: 'toggleBlue', row, col })}
             />
           </div>
@@ -83,6 +106,7 @@ export default function App() {
           <GreenRow
             player={player}
             points={score.green}
+            locked={locked}
             onSet={(count) => dispatch({ type: 'setGreen', count })}
           />
 
@@ -94,6 +118,7 @@ export default function App() {
             values={player.orange}
             bonuses={ORANGE_BONUSES}
             multipliers={ORANGE_MULTIPLIERS}
+            locked={locked}
             onSet={(index, value) => setRowValue('orange', index, value)}
           />
 
@@ -104,6 +129,7 @@ export default function App() {
             points={score.purple}
             values={player.purple}
             bonuses={PURPLE_BONUSES}
+            locked={locked}
             onSet={(index, value) => setRowValue('purple', index, value)}
           />
         </main>
@@ -144,6 +170,8 @@ export default function App() {
           </button>
         </span>
       </footer>
+
+      <Toasts notifications={state.notifications} onDismiss={dismiss} />
     </div>
   )
 }
