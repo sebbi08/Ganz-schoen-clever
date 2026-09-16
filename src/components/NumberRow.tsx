@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import type { BonusId } from '../game/layout'
-import { nextFreeIndex } from '../game/scoring'
+import { lastFilledIndex, nextFreeIndex } from '../game/scoring'
 import { BonusChip } from './BonusChip'
-import { ValuePicker } from './ValuePicker'
 
 interface Props {
   color: 'orange' | 'purple'
@@ -28,8 +27,18 @@ export function NumberRow({
   multipliers,
   onSet,
 }: Props) {
-  const [open, setOpen] = useState<number | null>(null)
+  // null = automatisch das nächste freie Feld
+  const [selected, setSelected] = useState<number | null>(null)
   const next = nextFreeIndex(values)
+  const last = lastFilledIndex(values)
+  const target = selected ?? next
+  const targetMultiplier = target === null ? 1 : (multipliers?.[target] ?? 1)
+
+  function write(value: number) {
+    if (target === null) return
+    onSet(target, value)
+    setSelected(null)
+  }
 
   return (
     <section className={`area ${color}`}>
@@ -41,41 +50,62 @@ export function NumberRow({
       <div className="track">
         {values.map((value, index) => {
           const multiplier = multipliers?.[index] ?? 1
-          const editable = value !== null || index === next
+          // Anwählbar sind gefüllte Felder und das nächste freie.
+          const selectable = value !== null || index === next
           return (
             <div className="track-cell" key={index}>
               <span className="mult">{multiplier > 1 ? `×${multiplier}` : ''}</span>
               <button
-                className={`cell${index === next ? ' next' : ''}`}
-                disabled={!editable}
-                onClick={() => setOpen(open === index ? null : index)}
+                className={`cell${index === target ? ' next' : ''}`}
+                disabled={!selectable}
+                onClick={() => setSelected(index === selected ? null : index)}
                 aria-label={`${label} Feld ${index + 1}`}
               >
                 {value ?? ''}
               </button>
-              {open === index && (
-                <ValuePicker
-                  onPick={(picked) => {
-                    onSet(index, picked)
-                    setOpen(null)
-                  }}
-                  onClear={
-                    value !== null
-                      ? () => {
-                          onSet(index, null)
-                          setOpen(null)
-                        }
-                      : undefined
-                  }
-                  onClose={() => setOpen(null)}
-                />
-              )}
               <span className="below">
                 {bonuses[index] && <BonusChip bonus={bonuses[index]!} small />}
               </span>
             </div>
           )
         })}
+      </div>
+
+      <div className="value-bar">
+        <span className="value-bar-label">
+          {target === null ? (
+            'Reihe ist voll'
+          ) : (
+            <>
+              Feld {target + 1}
+              {targetMultiplier > 1 && <b> ×{targetMultiplier}</b>}
+              {values[target] !== null && ' überschreiben'}
+            </>
+          )}
+        </span>
+        {[1, 2, 3, 4, 5, 6].map((value) => (
+          <button
+            key={value}
+            className="value-btn"
+            disabled={target === null}
+            onClick={() => write(value)}
+            aria-label={`${label}: ${value} eintragen`}
+          >
+            {value}
+          </button>
+        ))}
+        <button
+          className="btn ghost"
+          disabled={last === null}
+          onClick={() => {
+            if (last === null) return
+            onSet(selected !== null && values[selected] !== null ? selected : last, null)
+            setSelected(null)
+          }}
+          title="Letzten Eintrag zurücknehmen"
+        >
+          ⌫
+        </button>
       </div>
     </section>
   )
