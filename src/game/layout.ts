@@ -193,6 +193,12 @@ export function roundsFor(playerCount: number): number {
   return ROUNDS.filter((round) => playerCount <= round.maxPlayers).length
 }
 
+/** Vorratsfelder je Leiste auf dem Originalblock. */
+export const SUPPLY_SLOTS = 8
+
+/** Boni mit eigener Vorratsleiste. */
+export const SUPPLY_BONUSES = ['reroll', 'plus1'] as const
+
 /** Farbboni, die eine freie Wahl im Raster verlangen. */
 export type PickBonus = 'yellow' | 'blue'
 

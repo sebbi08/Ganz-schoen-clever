@@ -26,8 +26,10 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
     Wer sich verklickt hat, lässt den Bonus über den Banner verfallen.
   - Ketten lösen sich von selbst auf: Schreibt ein Bonus in ein Feld, das
     seinerseits einen Bonus trägt, wird auch der sofort abgearbeitet.
-- **Vorrat und Füchse**: Wiederholungswürfe und +1 bleiben als Liste stehen,
-  bis man sie einlöst. Füchse zählen automatisch mit.
+- **Vorrat wie auf dem Block**: Wiederholungswürfe und +1 haben je eine
+  Leiste mit acht Kreisen. Jeder erhaltene Bonus füllt einen Kreis, ein
+  Klick hakt ihn beim Einlösen ab; rechts steht, wie viele noch offen sind.
+  Füchse zählen automatisch mit.
 - **Rundenleiste** mit den Rundenboni 1–4; die Rundenzahl richtet sich nach
   der Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5, 4 Spieler: 4).
 - **Mehrere Spieler** mit eigenem Block, umbenennbar, Punktestand in der

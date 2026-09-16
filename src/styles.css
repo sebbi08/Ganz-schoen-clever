@@ -472,27 +472,71 @@ button {
   margin: 0;
 }
 
-.supply {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 10px;
-}
+/* Vorratsleisten wie auf dem Block: ein Kreis je erhaltenem Bonus. */
 
-.supply-item {
-  flex: 1;
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 6px 8px;
+.supply-track {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
 }
 
-.supply-item strong {
-  margin-left: auto;
-  font-size: 16px;
+.supply-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.slot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 0;
+  position: relative;
+}
+
+.slot.filled {
+  background: var(--muted);
+  border-color: var(--muted);
+}
+
+.slot.filled:hover {
+  border-color: var(--text);
+}
+
+/* Eingelöst: durchgestrichen, wie abgehakt auf Papier. */
+.slot.used {
+  background: transparent;
+}
+
+.slot.used::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background:
+    linear-gradient(to bottom right, transparent 44%, var(--muted) 44%, var(--muted) 56%, transparent 56%),
+    linear-gradient(to bottom left, transparent 44%, var(--muted) 44%, var(--muted) 56%, transparent 56%);
+}
+
+.supply-count {
+  font-size: 15px;
+  min-width: 14px;
+  text-align: right;
+}
+
+.chip-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 0;
 }
 
 .add-bonus {
