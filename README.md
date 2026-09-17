@@ -30,7 +30,8 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   - Ketten lösen sich von selbst auf: Schreibt ein Bonus in ein Feld, das
     seinerseits einen Bonus trägt, wird auch der sofort abgearbeitet.
 - **Vorrat wie auf dem Block**, direkt unter der Rundenleiste:
-  Wiederholungswürfe und +1 haben je eine Leiste mit acht Kreisen. Jeder
+  Wiederholungswurf und Zusatzwürfel (auf dem Block das »+1«-Symbol: einen
+  der sechs Würfel zusätzlich nutzen) haben je eine Leiste mit acht Kreisen. Jeder
   erhaltene Bonus füllt einen Kreis, ein Klick hakt ihn beim Einlösen ab –
   und das endgültig, zurück geht es nur über den Verlauf. Eingelöste rutschen
   nach vorn, damit die offenen zusammenhängend am Ende stehen; rechts steht
@@ -47,7 +48,8 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   weil sie die Rundenzahl bestimmt.
 - **Gesetzt ist gesetzt**: Ein Kreuz oder eine Zahl lässt sich nicht einzeln
   zurücknehmen – wie auf Papier. Korrigiert wird über den **Verlauf**: Er
-  listet die letzten 30 Züge, jeden in der Farbe seines Bereichs. Zurück
+  zeigt die letzten acht Züge, jeden in der Farbe seines Bereichs; gemerkt
+  werden 30, so weit reicht also auch das Zurücknehmen. Zurück
   nehmen lässt sich der jeweils letzte, und das erst auf den zweiten Klick –
   der erste fragt nach und verfällt nach vier Sekunden von selbst. Mit dem
   Zug verschwinden auch die Boni, die er ausgelöst hat.

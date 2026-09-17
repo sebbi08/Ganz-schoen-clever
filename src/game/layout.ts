@@ -40,7 +40,7 @@ export interface BonusInfo {
 
 export const BONUSES: Record<BonusId, BonusInfo> = {
   reroll: { label: 'Wiederholungswurf', short: '↻', kind: 'action', color: 'neutral' },
-  plus1: { label: '+1 auf einen Würfel', short: '+1', kind: 'action', color: 'neutral' },
+  plus1: { label: 'Zusatzwürfel (+1)', short: '+1', kind: 'action', color: 'neutral' },
   fox: { label: 'Fuchs', short: '🦊', kind: 'fox', color: 'fox' },
   yellow: { label: 'Gelbes Kreuz (frei wählbar)', short: '✗', kind: 'mark', color: 'yellow' },
   blue: { label: 'Blaues Kreuz (frei wählbar)', short: '✗', kind: 'mark', color: 'blue' },
@@ -172,7 +172,7 @@ export const PURPLE_STEPS: readonly PurpleStep[] = [
 /* ---------------------------------------------------------------- Runden */
 
 export interface RoundInfo {
-  /** Rundenbonus, den jeder Spieler am Ende der Runde erhält. */
+  /** Rundenbonus, den jeder Spieler zu Beginn der Runde erhält. */
   bonus?: BonusId
   /** Bis zu wie vielen Spielern diese Runde noch gespielt wird. */
   maxPlayers: number

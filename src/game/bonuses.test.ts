@@ -117,7 +117,7 @@ describe('Kreuzboni mit freier Wahl', () => {
 })
 
 describe('Vorrat und Füchse', () => {
-  it('legt Wiederholungswurf und +1 in den Vorrat', () => {
+  it('legt Wiederholungswurf und Zusatzwürfel in den Vorrat', () => {
     const state = run({ type: 'setGreen', count: 4 }) // grünes Feld 4 → +1
     expect(openBonuses(active(state)).map((entry) => entry.bonus)).toContain('plus1')
   })

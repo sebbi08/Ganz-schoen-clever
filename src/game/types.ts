@@ -19,7 +19,7 @@ export interface PlayerState {
   purple: (number | null)[]
   /** Farbboni, die bereits sofort verarbeitet wurden (sourceId). */
   resolvedBonuses: string[]
-  /** Eingelöste Vorratsboni: Wiederholungswurf, +1 (sourceId). */
+  /** Eingelöste Vorratsboni: Wiederholungswurf, Zusatzwürfel (sourceId). */
   usedBonuses: string[]
   /** Zusätzlich gutgeschriebene Boni – heute sind das die Rundenboni. */
   manualBonuses: ManualBonus[]

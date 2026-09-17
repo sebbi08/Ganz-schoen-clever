@@ -190,7 +190,7 @@ export function foxCount(player: PlayerState): number {
 
 /**
  * Vorrat: Boni, die nicht sofort verarbeitet werden, sondern liegen bleiben,
- * bis man sie einlöst – Wiederholungswürfe und +1. Farbboni und Füchse
+ * bis man sie einlöst – Wiederholungswürfe und Zusatzwürfel. Farbboni und Füchse
  * tauchen hier nicht auf, die laufen automatisch durch (siehe bonuses.ts).
  */
 export function openBonuses(player: PlayerState): EarnedBonus[] {

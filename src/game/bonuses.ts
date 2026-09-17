@@ -27,7 +27,7 @@ import type {
  *   ohnehin nur ein legales Ziel.
  * - Gelbes und blaues Kreuz sind frei wählbar und werden deshalb als
  *   Zwangsauswahl gestellt: der Block bleibt gesperrt, bis das Feld steht.
- * - Füchse, Wiederholungswürfe und +1 verändern den Block nicht und werden
+ * - Füchse, Wiederholungswürfe und Zusatzwürfel verändern den Block nicht und werden
  *   nur gemeldet beziehungsweise in den Vorrat gelegt.
  *
  * Jeder Schritt kann neue Boni auslösen (Ketten), deshalb läuft die
@@ -121,7 +121,7 @@ function applyBonus(state: GameState, entry: EarnedBonus): GameState {
       return notify(next, `Fuchs · ${entry.origin}`, 'fox')
 
     default:
-      // Wiederholungswurf und +1 wandern in den Vorrat.
+      // Wiederholungswurf und Zusatzwürfel wandern in den Vorrat.
       return notify(next, `${info.label} · ${entry.origin}`, info.color)
   }
 }

@@ -136,7 +136,7 @@ describe('Rundenbonus', () => {
   it('meldet sich per Toast', () => {
     const state = run({ type: 'completeRound' })
     expect(state.present.notifications.map((n) => n.text)).toContain(
-      '+1 auf einen Würfel · Rundenbonus 2',
+      'Zusatzwürfel (+1) · Rundenbonus 2',
     )
   })
 
