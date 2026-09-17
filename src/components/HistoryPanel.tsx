@@ -33,7 +33,7 @@ export function HistoryPanel({ past, onUndo }: Props) {
             {recent.map(({ entry, steps }) => (
               <li key={steps}>
                 <button
-                  className="history-row"
+                  className={`history-row ${entry.tone}`}
                   onClick={() => onUndo(steps)}
                   title={
                     steps === 1
@@ -41,6 +41,7 @@ export function HistoryPanel({ past, onUndo }: Props) {
                       : `Diesen Zug und die ${steps - 1} danach zurücknehmen`
                   }
                 >
+                  <span className="history-dot" />
                   <span className="label">{entry.label}</span>
                   <span className="tick">↶{steps > 1 && ` ${steps}`}</span>
                 </button>

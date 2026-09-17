@@ -18,10 +18,9 @@ export function RoundBar({
   onComplete,
 }: Props) {
   const total = roundsFor(tableSize)
-  const bonus = ROUNDS[round - 1]?.bonus
-  const claimed = claimedRounds.includes(round)
-  // In der letzten Runde bleibt nur noch ein offener Bonus zu holen.
-  const finished = round >= total && !(bonus && !claimed)
+  const finished = round >= total
+  // Der Bonus der nächsten Runde gibt es beim Abschließen dieser Runde.
+  const nextBonus = ROUNDS[round]?.bonus
 
   return (
     <div className="panel">
@@ -50,7 +49,7 @@ export function RoundBar({
               className={`round${number === round ? ' current' : ''}${
                 claimedRounds.includes(number) ? ' claimed' : ''
               }`}
-              title={claimedRounds.includes(number) ? 'Bonus erhalten' : undefined}
+              title={claimedRounds.includes(number) ? 'Bonus schon erhalten' : undefined}
             >
               <span className="no">{number}</span>
               {info.bonus ? <BonusChip bonus={info.bonus} small /> : <span className="hint">–</span>}
@@ -58,11 +57,19 @@ export function RoundBar({
           )
         })}
         <button className="btn round-done" onClick={onComplete} disabled={finished}>
-          {finished
-            ? 'Spiel zu Ende'
-            : bonus && !claimed
-              ? `Runde ${round} abschließen – Bonus kassieren →`
-              : `Runde ${round} abschließen →`}
+          {finished ? (
+            'Spiel zu Ende'
+          ) : (
+            <>
+              Runde {round} abschließen →
+              {nextBonus && (
+                <>
+                  {' '}
+                  <BonusChip bonus={nextBonus} small />
+                </>
+              )}
+            </>
+          )}
         </button>
       </div>
     </div>

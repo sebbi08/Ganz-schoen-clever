@@ -11,13 +11,44 @@ function nextId(prefix: string): string {
 }
 
 export function createGame(tableSize = 1): GameState {
-  return {
+  // Runde 1 läuft schon, ihr Bonus gehört also sofort gutgeschrieben.
+  return startRound({
     player: createPlayer(),
     round: 1,
     tableSize,
     claimedRounds: [],
     pendingChoices: [],
     notifications: [],
+  })
+}
+
+/**
+ * Schreibt den Bonus der laufenden Runde gut. Der steht dem Spieler zu
+ * Beginn der Runde zu – wer Runde 1 beginnt, hat also schon einen
+ * Wiederholungswurf im Vorrat.
+ */
+function startRound(state: GameState): GameState {
+  const info = ROUNDS[state.round - 1]
+  if (!info?.bonus || state.claimedRounds.includes(state.round)) return state
+  const id = nextId('round')
+  const origin = `Rundenbonus ${state.round}`
+  return {
+    ...state,
+    claimedRounds: [...state.claimedRounds, state.round],
+    player: {
+      ...state.player,
+      manualBonuses: [...state.player.manualBonuses, { id, bonus: info.bonus, origin }],
+      // Gleich als verarbeitet markieren, sonst meldet er sich doppelt.
+      resolvedBonuses: [...state.player.resolvedBonuses, id],
+    },
+    notifications: [
+      ...state.notifications,
+      {
+        id: nextId('n'),
+        text: `${origin}: ${BONUSES[info.bonus].label}`,
+        tone: BONUSES[info.bonus].color,
+      },
+    ],
   }
 }
 
@@ -135,35 +166,9 @@ function apply(state: GameState, action: Action): GameState {
 
     case 'completeRound': {
       const total = roundsFor(state.tableSize)
-      const info = ROUNDS[state.round - 1]
-      const next = Math.min(total, state.round + 1)
-      // Jeder Rundenbonus wird nur einmal verteilt.
-      if (!info?.bonus || state.claimedRounds.includes(state.round)) {
-        return { ...state, round: next }
-      }
-      const origin = `Rundenbonus ${state.round}`
-      const roundBonusId = nextId('round')
-      return {
-        ...state,
-        round: next,
-        claimedRounds: [...state.claimedRounds, state.round],
-        player: {
-          ...state.player,
-          manualBonuses: [
-            ...state.player.manualBonuses,
-            { id: roundBonusId, bonus: info.bonus, origin },
-          ],
-          resolvedBonuses: [...state.player.resolvedBonuses, roundBonusId],
-        },
-        notifications: [
-          ...state.notifications,
-          {
-            id: nextId('n'),
-            text: `${origin}: ${BONUSES[info.bonus].label}`,
-            tone: BONUSES[info.bonus].color,
-          },
-        ],
-      }
+      if (state.round >= total) return state
+      // Die neue Runde beginnt, damit kommt ihr Bonus dazu.
+      return startRound({ ...state, round: state.round + 1 })
     }
 
     case 'skipChoice':

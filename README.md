@@ -30,20 +30,22 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   Leiste mit acht Kreisen. Jeder erhaltene Bonus füllt einen Kreis, ein
   Klick hakt ihn beim Einlösen ab; rechts steht, wie viele noch offen sind.
   Füchse zählen automatisch mit.
-- **Rundenleiste**: „Runde N abschließen" schreibt den Rundenbonus gut und
-  schaltet genau eine Runde weiter – überspringen geht nicht, zurück nur
-  über den Verlauf. Erledigte Runden bekommen einen Haken, nach der letzten
-  Runde ist der Knopf gesperrt. Die Rundenzahl richtet sich nach der
-  Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5, 4 Spieler: 4); Boni
-  gibt es in den Runden 1–4.
+- **Rundenleiste**: Der Rundenbonus wird zu *Beginn* der Runde
+  gutgeschrieben – man startet also schon mit einem Wiederholungswurf aus
+  Runde 1. „Runde N abschließen" schaltet genau eine Runde weiter und bringt
+  deren Bonus mit; überspringen geht nicht, zurück nur über den Verlauf.
+  Erledigte Runden bekommen einen Haken, nach der letzten ist der Knopf
+  gesperrt. Die Rundenzahl richtet sich nach der Spielerzahl (1–2 Spieler:
+  6 Runden, 3 Spieler: 5, 4 Spieler: 4); Boni gibt es in den Runden 1–4.
 - **Ein Block pro Gerät**: Mitspieler öffnen die Seite selbst, jeder Browser
   führt seinen eigenen Stand. Am Tisch stellt man nur die Spielerzahl ein,
   weil sie die Rundenzahl bestimmt.
 - **Gesetzt ist gesetzt**: Ein Kreuz oder eine Zahl lässt sich nicht einzeln
   zurücknehmen – wie auf Papier. Korrigiert wird über den **Verlauf**: Er
-  führt die letzten 30 Züge und nimmt auf Klick den
-  gewählten Zug samt allem danach zurück, inklusive der Boni, die dabei
-  ausgelöst wurden. Strg+Z (bzw. Cmd+Z) nimmt den letzten Zug zurück.
+  führt die letzten 30 Züge – jeder in der Farbe seines Bereichs – und nimmt
+  auf Klick den gewählten Zug samt allem danach zurück, inklusive der Boni,
+  die dabei ausgelöst wurden. Strg+Z (bzw. Cmd+Z) nimmt den letzten Zug
+  zurück.
 - **Spielstand bleibt erhalten** (localStorage), auch nach dem Neuladen.
 
 ## Entwicklung
@@ -84,9 +86,8 @@ Wertung und Bonuslogik lesen alles von dort.
 | Lila, Felder 3–11 | Wiederholungswurf · blaues Kreuz · +1 · gelbes Kreuz · Fuchs · Wiederholungswurf · grünes Kreuz · orange 6 · +1 |
 | Runden 1–4 | Wiederholungswurf · +1 · Wiederholungswurf · beliebiges Kreuz oder eine 6 |
 
-Die Rundenboni gehen am Ende der Runde an jeden Spieler – hier also an den
-Block dieser Seite. Das steht so nicht auf dem Block; wer es anders
-handhabt, ändert `completeRound` in `src/game/state.ts`.
+Die Rundenboni gibt es zu Beginn der jeweiligen Runde. Wer das anders
+handhabt, ändert `startRound` in `src/game/state.ts`.
 
 ## Veröffentlichen
 

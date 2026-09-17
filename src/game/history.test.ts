@@ -22,9 +22,9 @@ describe('Verlauf', () => {
   it('merkt sich jeden Zug, der den Block verändert', () => {
     const state = run({ type: 'toggleYellow', row: 0, col: 0 }, { type: 'setGreen', count: 1 })
     expect(state.past).toHaveLength(2)
-    expect(state.past.map((entry) => entry.label)).toEqual([
-      'Gelb Reihe 1, Spalte 1',
-      'Grün bis Feld 1',
+    expect(state.past.map((entry) => `${entry.tone}:${entry.label}`)).toEqual([
+      'yellow:Gelbes Kreuz · Reihe 1, Spalte 1',
+      'green:Grünes Kreuz · Feld 1',
     ])
   })
 
@@ -106,18 +106,37 @@ describe('Verlauf', () => {
     state = historyReducer(state, { type: 'newGame' })
     expect(state.past).toHaveLength(0)
     expect(active(state).orange.every((value) => value === null)).toBe(true)
+    // Das neue Spiel startet wieder mit dem Bonus aus Runde 1.
+    expect(active(state).manualBonuses).toHaveLength(1)
   })
 
 })
 
 describe('Rundenbonus', () => {
-  it('wird beim Abschließen gutgeschrieben', () => {
-    const state = run({ type: 'completeRound' })
+  it('liegt schon zu Beginn von Runde 1 im Vorrat', () => {
+    const state = createHistory(1)
     expect(active(state).manualBonuses.map((entry) => `${entry.bonus}:${entry.origin}`)).toEqual([
       'reroll:Rundenbonus 1',
     ])
-    expect(state.present.round).toBe(2)
     expect(state.present.claimedRounds).toEqual([1])
+    expect(openBonuses(active(state)).map((entry) => entry.bonus)).toEqual(['reroll'])
+  })
+
+  it('kommt beim Abschließen mit der neuen Runde dazu', () => {
+    const state = run({ type: 'completeRound' })
+    expect(state.present.round).toBe(2)
+    expect(active(state).manualBonuses.map((entry) => `${entry.bonus}:${entry.origin}`)).toEqual([
+      'reroll:Rundenbonus 1',
+      'plus1:Rundenbonus 2',
+    ])
+    expect(state.present.claimedRounds).toEqual([1, 2])
+  })
+
+  it('meldet sich per Toast', () => {
+    const state = run({ type: 'completeRound' })
+    expect(state.present.notifications.map((n) => n.text)).toContain(
+      'Rundenbonus 2: +1 auf einen Würfel',
+    )
   })
 
   it('wird pro Runde nur einmal verteilt', () => {
@@ -129,25 +148,14 @@ describe('Rundenbonus', () => {
       state: { ...state.present, round: 1 },
     })
     state = historyReducer(state, { type: 'completeRound' })
-    expect(active(state).manualBonuses).toHaveLength(1)
-    expect(state.present.claimedRounds).toEqual([1])
-  })
-
-  it('landet direkt in der Vorratsleiste', () => {
-    const state = run({ type: 'completeRound' })
-    expect(openBonuses(active(state)).map((entry) => entry.bonus)).toEqual(['reroll'])
-  })
-
-  it('meldet sich per Toast', () => {
-    const state = run({ type: 'completeRound' })
-    expect(state.present.notifications.map((n) => n.text)).toContain(
-      'Rundenbonus 1: Wiederholungswurf',
-    )
+    expect(active(state).manualBonuses).toHaveLength(2)
   })
 
   it('verteilt die Boni der Runden 1 bis 4, danach keine mehr', () => {
-    let state = createHistory(1)
-    for (let i = 0; i < 6; i++) state = historyReducer(state, { type: 'completeRound' })
+    let state = createHistory(1) // ein Spieler → sechs Runden
+    for (let index = 0; index < 6; index++) {
+      state = historyReducer(state, { type: 'completeRound' })
+    }
     expect(active(state).manualBonuses.map((entry) => entry.bonus)).toEqual([
       'reroll',
       'plus1',
@@ -165,16 +173,15 @@ describe('Rundenbonus', () => {
       verlauf.push(state.present.round)
     }
     expect(verlauf).toEqual([2, 3, 4, 4, 4, 4])
-    // Der Bonus der letzten Runde wird trotzdem nur einmal verteilt.
-    expect(active(state).manualBonuses.filter((e) => e.origin === 'Rundenbonus 4')).toHaveLength(1)
+    expect(active(state).manualBonuses).toHaveLength(4)
   })
 
   it('lässt sich über den Verlauf zurücknehmen', () => {
     let state = run({ type: 'completeRound' })
-    expect(active(state).manualBonuses).toHaveLength(1)
+    expect(active(state).manualBonuses).toHaveLength(2)
     state = historyReducer(state, { type: 'undo', steps: 1 })
-    expect(active(state).manualBonuses).toHaveLength(0)
+    expect(active(state).manualBonuses).toHaveLength(1)
     expect(state.present.round).toBe(1)
-    expect(state.present.claimedRounds).toEqual([])
+    expect(state.present.claimedRounds).toEqual([1])
   })
 })

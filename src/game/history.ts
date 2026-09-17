@@ -1,4 +1,5 @@
-import { BONUSES } from './layout'
+import { BLUE_GRID, BONUSES } from './layout'
+import type { BonusInfo } from './layout'
 import type { Action } from './state'
 import { createGame, migrateState, reducer } from './state'
 import type { GameState } from './types'
@@ -17,6 +18,8 @@ export interface HistoryEntry {
   /** Zustand *vor* dem Zug. */
   state: GameState
   label: string
+  /** Farbe des Bereichs, den der Zug betraf. */
+  tone: BonusInfo['color']
 }
 
 export interface HistoryState {
@@ -26,31 +29,39 @@ export interface HistoryState {
 
 export type HistoryAction = Action | { type: 'undo'; steps: number }
 
-/** Kurzbeschreibung eines Zuges, gebildet aus dem Zustand davor. */
-export function describe(state: GameState, action: Action): string {
+type Described = Pick<HistoryEntry, 'label' | 'tone'>
+
+/** Beschreibung und Farbe eines Zuges, gebildet aus dem Zustand davor. */
+export function describe(state: GameState, action: Action): Described {
   switch (action.type) {
     case 'toggleYellow':
-      return `Gelb Reihe ${action.row + 1}, Spalte ${action.col + 1}`
-    case 'toggleBlue':
-      return `Blau Reihe ${action.row + 1}, Spalte ${action.col + 1}`
+      return { label: `Gelbes Kreuz · Reihe ${action.row + 1}, Spalte ${action.col + 1}`, tone: 'yellow' }
+    case 'toggleBlue': {
+      const value = BLUE_GRID[action.row][action.col]
+      return { label: `Blaues Kreuz · ${value ?? ''}`, tone: 'blue' }
+    }
     case 'setGreen':
-      return `Grün bis Feld ${action.count}`
+      return { label: `Grünes Kreuz · Feld ${action.count}`, tone: 'green' }
     case 'setOrange':
-      return `Orange Feld ${action.index + 1}${action.value === null ? ' geleert' : ` = ${action.value}`}`
+      return action.value === null
+        ? { label: `Orange Feld ${action.index + 1} geleert`, tone: 'orange' }
+        : { label: `Orange ${action.value} · Feld ${action.index + 1}`, tone: 'orange' }
     case 'setPurple':
-      return `Lila Feld ${action.index + 1}${action.value === null ? ' geleert' : ` = ${action.value}`}`
+      return action.value === null
+        ? { label: `Lila Feld ${action.index + 1} geleert`, tone: 'purple' }
+        : { label: `Lila ${action.value} · Feld ${action.index + 1}`, tone: 'purple' }
     case 'toggleBonusUsed':
-      return `Bonus abgehakt`
+      return { label: 'Bonus abgehakt', tone: 'neutral' }
     case 'addManualBonus':
-      return `${BONUSES[action.bonus].label} ergänzt`
+      return { label: `${BONUSES[action.bonus].label} ergänzt`, tone: BONUSES[action.bonus].color }
     case 'removeManualBonus':
-      return `Bonus entfernt`
+      return { label: 'Bonus entfernt', tone: 'neutral' }
     case 'skipChoice':
-      return `Bonus verfallen lassen`
+      return { label: 'Bonus verfallen lassen', tone: 'fox' }
     case 'completeRound':
-      return `Runde ${state.round} abgeschlossen`
+      return { label: `Runde ${state.round} abgeschlossen`, tone: 'neutral' }
     default:
-      return 'Zug'
+      return { label: 'Zug', tone: 'neutral' }
   }
 }
 
@@ -105,7 +116,7 @@ export function historyReducer(state: HistoryState, action: HistoryAction): Hist
     return { ...state, present }
   }
 
-  const entry: HistoryEntry = { state: state.present, label: describe(state.present, action) }
+  const entry: HistoryEntry = { state: state.present, ...describe(state.present, action) }
   return {
     present,
     past: [...state.past, entry].slice(-MAX_HISTORY),
@@ -136,6 +147,7 @@ export function loadHistory(): HistoryState | null {
       present: migrateState(present),
       past: (parsed.past ?? []).map((entry) => ({
         label: entry.label,
+        tone: entry.tone ?? 'neutral',
         state: migrateState(entry.state),
       })),
     }
