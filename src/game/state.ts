@@ -64,20 +64,12 @@ export type Action =
   | { type: 'newGame' }
   | { type: 'replace'; state: GameState }
 
-function updatePlayer(
-  state: GameState,
-  update: (player: PlayerState) => PlayerState,
-): GameState {
+function updatePlayer(state: GameState, update: (player: PlayerState) => PlayerState): GameState {
   return { ...state, player: update(state.player) }
 }
 
 /** Aktionen, die auch bei offener Zwangsauswahl durchgehen. */
-const ALWAYS_ALLOWED: Action['type'][] = [
-  'skipChoice',
-  'dismissNotification',
-  'newGame',
-  'replace',
-]
+const ALWAYS_ALLOWED: Action['type'][] = ['skipChoice', 'dismissNotification', 'newGame', 'replace']
 
 export function reducer(state: GameState, action: Action): GameState {
   const choice = state.pendingChoices[0]
@@ -124,7 +116,9 @@ function apply(state: GameState, action: Action): GameState {
     case 'setOrange':
       return updatePlayer(state, (player) => ({
         ...player,
-        orange: player.orange.map((value, index) => (index === action.index ? action.value : value)),
+        orange: player.orange.map((value, index) =>
+          index === action.index ? action.value : value,
+        ),
       }))
 
     case 'setPurple':
@@ -133,7 +127,9 @@ function apply(state: GameState, action: Action): GameState {
         return state
       return updatePlayer(state, (player) => ({
         ...player,
-        purple: player.purple.map((value, index) => (index === action.index ? action.value : value)),
+        purple: player.purple.map((value, index) =>
+          index === action.index ? action.value : value,
+        ),
       }))
 
     case 'useBonus':

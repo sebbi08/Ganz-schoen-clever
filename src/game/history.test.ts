@@ -48,8 +48,11 @@ describe('Verlauf', () => {
     let state = run(...yellowRow2)
     state = historyReducer(state, { type: 'undo', steps: 3 })
     // Feld 3 der Reihe ist vorgekreuzt und bleibt es auch.
-    expect([active(state).yellow[1][0], active(state).yellow[1][1], active(state).yellow[1][3]])
-      .toEqual([false, false, false])
+    expect([
+      active(state).yellow[1][0],
+      active(state).yellow[1][1],
+      active(state).yellow[1][3],
+    ]).toEqual([false, false, false])
     expect(state.past).toHaveLength(0)
   })
 
@@ -120,7 +123,6 @@ describe('Verlauf', () => {
     // Das neue Spiel startet wieder mit dem Bonus aus Runde 1.
     expect(active(state).manualBonuses).toHaveLength(1)
   })
-
 })
 
 describe('Rundenbonus', () => {
@@ -209,9 +211,7 @@ describe('Wiederholen', () => {
   it('legt zurückgenommene Züge auf den Stapel', () => {
     let state = run(gelb(0), gelb(1))
     state = historyReducer(state, { type: 'undo', steps: 1 })
-    expect(state.future.map((entry) => entry.label)).toEqual([
-      'Gelbes Kreuz · Reihe 1, Spalte 2',
-    ])
+    expect(state.future.map((entry) => entry.label)).toEqual(['Gelbes Kreuz · Reihe 1, Spalte 2'])
     expect(active(state).yellow[0][1]).toBe(false)
   })
 

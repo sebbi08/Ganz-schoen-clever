@@ -20,7 +20,11 @@ function Toast({ entry, onDismiss }: { entry: Notification; onDismiss: (id: stri
   }, [entry.id, onDismiss])
 
   return (
-    <button className={`toast ${entry.tone}`} onClick={() => onDismiss(entry.id)} title="Ausblenden">
+    <button
+      className={`toast ${entry.tone}`}
+      onClick={() => onDismiss(entry.id)}
+      title="Ausblenden"
+    >
       {entry.text}
     </button>
   )

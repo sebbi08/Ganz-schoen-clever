@@ -57,7 +57,11 @@ export function RoundBar({
               title={claimedRounds.includes(number) ? 'Bonus schon erhalten' : undefined}
             >
               <span className="no">{number}</span>
-              {info.bonus ? <BonusChip bonus={info.bonus} small /> : <span className="hint">–</span>}
+              {info.bonus ? (
+                <BonusChip bonus={info.bonus} small />
+              ) : (
+                <span className="hint">–</span>
+              )}
             </div>
           )
         })}

@@ -45,7 +45,10 @@ type Described = Pick<HistoryEntry, 'label' | 'tone'>
 export function describe(state: GameState, action: Action): Described {
   switch (action.type) {
     case 'markYellow':
-      return { label: `Gelbes Kreuz · Reihe ${action.row + 1}, Spalte ${action.col + 1}`, tone: 'yellow' }
+      return {
+        label: `Gelbes Kreuz · Reihe ${action.row + 1}, Spalte ${action.col + 1}`,
+        tone: 'yellow',
+      }
     case 'markBlue': {
       const value = BLUE_GRID[action.row][action.col]
       return { label: `Blaues Kreuz · ${value ?? ''}`, tone: 'blue' }

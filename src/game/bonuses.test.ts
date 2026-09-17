@@ -100,12 +100,14 @@ describe('Kreuzboni mit freier Wahl', () => {
   })
 
   it('nehmen kein bereits angekreuztes Feld', () => {
-    let state = run(...yellowRow1)
-    state = reducer(state, { type: 'markBlue', row: 1, col: 0 })
-    // Dasselbe blaue Feld noch einmal: weder Auswahl erledigt noch Kreuz weg.
-    const before = run(...yellowRow1)
-    const after = reducer(before, { type: 'markYellow', row: 0, col: 0 })
-    expect(after).toBe(before)
+    const state = run(...yellowRow1)
+    // Ein schon gesetztes gelbes Kreuz erfüllt die Auswahl nicht.
+    expect(reducer(state, { type: 'markYellow', row: 0, col: 0 })).toBe(state)
+
+    // Und ein bereits angekreuztes blaues Feld ebenso wenig.
+    const marked = reducer(state, { type: 'markBlue', row: 1, col: 0 })
+    expect(marked.pendingChoices).toHaveLength(0)
+    expect(reducer(marked, { type: 'markBlue', row: 1, col: 0 })).toBe(marked)
   })
 
   it('lassen sich verfallen', () => {

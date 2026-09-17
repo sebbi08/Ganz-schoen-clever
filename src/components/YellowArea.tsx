@@ -20,7 +20,9 @@ export function YellowArea({ player, points, mode, onMark }: Props) {
   const columnDone = YELLOW_COLUMN_POINTS.map((_, col) => player.yellow.every((row) => row[col]))
 
   return (
-    <section className={`area yellow${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}>
+    <section
+      className={`area yellow${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}
+    >
       <div className="area-head">
         <span>Gelb – volle Spalten geben Punkte, volle Reihen einen Bonus</span>
         <span className="points">{points}</span>

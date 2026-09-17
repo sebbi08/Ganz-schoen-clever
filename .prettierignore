@@ -1,0 +1,11 @@
+dist
+coverage
+package-lock.json
+
+# Bewusst von Hand gesetzt: Prettier zoege die einzeiligen Farbregeln im
+# Stylesheet auseinander, schriebe in der README die Kursivauszeichnungen um
+# und braeche die langen Attribute in index.html um. Der Formatierer kuemmert
+# sich hier nur um den TypeScript-Quelltext.
+src/styles.css
+README.md
+index.html

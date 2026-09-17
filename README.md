@@ -76,10 +76,17 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
 
 ```bash
 npm install
-npm run dev      # Entwicklungsserver
-npm test         # Wertungslogik testen
-npm run build    # Produktionsbuild nach dist/
+npm run dev           # Entwicklungsserver
+npm test              # Wertungslogik testen
+npm run typecheck     # TypeScript prüfen
+npm run lint          # ESLint
+npm run format        # Prettier über den Quelltext
+npm run build         # Produktionsbuild nach dist/
 ```
+
+Dieselben Schritte laufen in der CI. Prettier kümmert sich nur um den
+TypeScript-Quelltext: Stylesheet, README und `index.html` sind von Hand
+gesetzt und stehen in `.prettierignore`.
 
 ## Aufbau
 

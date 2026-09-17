@@ -21,7 +21,11 @@ export function ChoiceBanner({ choice, remaining, onSkip }: Props) {
           Bonus gesetzt ist.
         </span>
       </span>
-      <button className="btn ghost" onClick={onSkip} title="Diesen Bonus ungenutzt verfallen lassen">
+      <button
+        className="btn ghost"
+        onClick={onSkip}
+        title="Diesen Bonus ungenutzt verfallen lassen"
+      >
         verfallen lassen
       </button>
     </div>

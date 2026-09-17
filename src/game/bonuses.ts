@@ -1,20 +1,8 @@
 import { BONUSES, GREEN_STEPS, NUMBER_BONUS } from './layout'
 import type { Area, PickBonus } from './layout'
-import {
-  earnedBonuses,
-  hasFreeBlue,
-  hasFreeYellow,
-  isBlueGap,
-  nextFreeIndex,
-} from './scoring'
+import { earnedBonuses, hasFreeBlue, hasFreeYellow, isBlueGap, nextFreeIndex } from './scoring'
 import type { Action } from './state'
-import type {
-  EarnedBonus,
-  GameState,
-  Notification,
-  PendingChoice,
-  PlayerState,
-} from './types'
+import type { EarnedBonus, GameState, Notification, PendingChoice, PlayerState } from './types'
 
 /**
  * Sofortverarbeitung der Farbboni.
@@ -47,10 +35,7 @@ function notify(state: GameState, text: string, tone: Notification['tone']): Gam
   }
 }
 
-function updatePlayer(
-  state: GameState,
-  update: (player: PlayerState) => PlayerState,
-): GameState {
+function updatePlayer(state: GameState, update: (player: PlayerState) => PlayerState): GameState {
   return { ...state, player: update(state.player) }
 }
 
@@ -202,19 +187,13 @@ export function areaMode(choice: PendingChoice | null, area: Area): AreaMode {
 }
 
 /** Erfüllt dieser Zug die offene Auswahl? */
-export function satisfiesChoice(
-  state: GameState,
-  choice: PendingChoice,
-  action: Action,
-): boolean {
+export function satisfiesChoice(state: GameState, choice: PendingChoice, action: Action): boolean {
   const player = state.player
   const any = choice.bonus === 'anyCrossOr6'
 
   switch (action.type) {
     case 'markYellow':
-      return (
-        (any || choice.bonus === 'yellow') && !player.yellow[action.row][action.col]
-      )
+      return (any || choice.bonus === 'yellow') && !player.yellow[action.row][action.col]
     case 'markBlue':
       return (
         (any || choice.bonus === 'blue') &&

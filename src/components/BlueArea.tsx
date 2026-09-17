@@ -15,7 +15,9 @@ export function BlueArea({ player, points, mode, onMark }: Props) {
   const count = blueMarkCount(player)
 
   return (
-    <section className={`area blue${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}>
+    <section
+      className={`area blue${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}
+    >
       <div className="area-head">
         <span>Blau – Punkte nach Anzahl der Kreuze</span>
         <span className="points">{points}</span>
@@ -23,7 +25,11 @@ export function BlueArea({ player, points, mode, onMark }: Props) {
 
       <div className="blue-track">
         {BLUE_POINTS.slice(1).map((value, index) => (
-          <div key={value} className={count >= index + 1 ? 'reached' : ''} title={`${index + 1} Kreuze`}>
+          <div
+            key={value}
+            className={count >= index + 1 ? 'reached' : ''}
+            title={`${index + 1} Kreuze`}
+          >
             {value}
           </div>
         ))}

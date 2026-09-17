@@ -23,7 +23,11 @@ const ORANGE_MULTIPLIERS = ORANGE_STEPS.map((step) => step.multiplier)
 const PURPLE_BONUSES = PURPLE_STEPS.map((step) => step.bonus)
 
 export default function App() {
-  const [history, dispatch] = useReducer(historyReducer, null, () => loadHistory() ?? createHistory(1))
+  const [history, dispatch] = useReducer(
+    historyReducer,
+    null,
+    () => loadHistory() ?? createHistory(1),
+  )
   const state = history.present
   const player = state.player
   const score = scoreSheet(player)
@@ -143,12 +147,7 @@ export default function App() {
 
         <aside className="sidebar">
           <ScorePanel score={score} />
-          <HistoryPanel
-            past={history.past}
-            future={history.future}
-            onUndo={undo}
-            onRedo={redo}
-          />
+          <HistoryPanel past={history.past} future={history.future} onUndo={undo} onRedo={redo} />
         </aside>
       </div>
 
