@@ -2,26 +2,31 @@ import { BLUE_COLUMN_BONUS, BLUE_GRID, BLUE_POINTS, BLUE_ROW_BONUS } from '../ga
 import { blueMarkCount, isBlueGap } from '../game/scoring'
 import type { AreaMode } from '../game/bonuses'
 import type { PlayerState } from '../game/types'
+import { AreaHead } from './AreaHead'
 import { BonusChip } from './BonusChip'
 
 interface Props {
   player: PlayerState
   points: number
+  weakest: boolean
+  foxes: number
   mode: AreaMode
   onMark: (row: number, col: number) => void
 }
 
-export function BlueArea({ player, points, mode, onMark }: Props) {
+export function BlueArea({ player, points, weakest, foxes, mode, onMark }: Props) {
   const count = blueMarkCount(player)
 
   return (
     <section
       className={`area blue${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}
     >
-      <div className="area-head">
-        <span>Blau – Punkte nach Anzahl der Kreuze</span>
-        <span className="points">{points}</span>
-      </div>
+      <AreaHead
+        text="Blau – Punkte nach Anzahl der Kreuze"
+        points={points}
+        weakest={weakest}
+        foxes={foxes}
+      />
 
       <div className="blue-track">
         {BLUE_POINTS.slice(1).map((value, index) => (

@@ -39,21 +39,28 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   erhaltene Bonus füllt einen Kreis, ein Klick hakt ihn beim Einlösen ab –
   und das endgültig, zurück geht es nur über den Verlauf. Eingelöste rutschen
   nach vorn, damit die offenen zusammenhängend am Ende stehen; rechts steht
-  ihre Zahl. Füchse zählen automatisch mit.
+  ihre Zahl. Darunter steht, wie viele Füchse schon zusammengekommen sind –
+  eingelöst werden die nicht, gezählt schon.
 - **Rundenleiste**: Der Rundenbonus wird zu *Beginn* der Runde
   gutgeschrieben – man startet also schon mit einem Wiederholungswurf aus
   Runde 1. Der Knopf schaltet genau eine Runde weiter und bringt
   deren Bonus mit; überspringen geht nicht, zurück nur über den Verlauf.
-  Erledigte Runden bekommen einen Haken. Die Rundenzahl richtet sich nach
-  der Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5, 4 Spieler: 4);
-  Boni gibt es in den Runden 1–4.
+  Jede angefangene Runde bekommt ihren Haken, auch die ohne Bonus. Die
+  Rundenzahl richtet sich nach der Spielerzahl (1–2 Spieler: 6 Runden,
+  3 Spieler: 5, 4 Spieler: 4); Boni gibt es in den Runden 1–4.
 - **Endwertung**: In der letzten Runde beendet derselbe Knopf das Spiel und
   klappt die Abrechnung auf – Gesamtpunkte, die fünf Bereiche und die
   Füchse mit ihrem Wert. Am Einzelblock steht die Stufe dazu, die der Block
   für diese Punktzahl vorsieht. Zurücknehmen geht auch das.
+- **Beim Spielen zählt der Block, nicht die Punktzahl**: Jeder Bereich zeigt
+  seine eigenen Punkte, eine Gesamtsumme gibt es erst in der Endwertung. Der
+  Bereich, an dem die Füchse hängen, ist als *schwächster* markiert – sobald
+  der erste Fuchs da ist.
 - **Ein Block pro Gerät**: Mitspieler öffnen die Seite selbst, jeder Browser
-  führt seinen eigenen Stand. Am Tisch stellt man nur die Spielerzahl ein,
-  weil sie die Rundenzahl bestimmt.
+  führt seinen eigenen Stand.
+- **Spielerzahl vor dem Spiel**: Sie bestimmt die Rundenzahl und wird deshalb
+  beim Start abgefragt – beim ersten Besuch und bei jedem *Neues Spiel*.
+  Mitten in der Partie lässt sie sich nicht mehr verstellen.
 - **Gesetzt ist gesetzt**: Ein Kreuz oder eine Zahl lässt sich nicht einzeln
   zurücknehmen – wie auf Papier. Korrigiert wird über den **Verlauf**: Er
   zeigt die letzten acht Züge, jeden in der Farbe seines Bereichs; gemerkt

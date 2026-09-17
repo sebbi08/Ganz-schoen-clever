@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer, useState } from 'react'
 import { ORANGE_STEPS, PURPLE_STEPS } from './game/layout'
 import { areaMode } from './game/bonuses'
 import type { AreaMode } from './game/bonuses'
@@ -13,8 +13,8 @@ import { FinalScore } from './components/FinalScore'
 import { GreenRow } from './components/GreenRow'
 import { HistoryPanel } from './components/HistoryPanel'
 import { NumberRow } from './components/NumberRow'
+import { NewGameDialog } from './components/NewGameDialog'
 import { RoundBar } from './components/RoundBar'
-import { ScorePanel } from './components/ScorePanel'
 import { Toasts } from './components/Toasts'
 import { YellowArea } from './components/YellowArea'
 
@@ -23,11 +23,15 @@ const ORANGE_MULTIPLIERS = ORANGE_STEPS.map((step) => step.multiplier)
 const PURPLE_BONUSES = PURPLE_STEPS.map((step) => step.bonus)
 
 export default function App() {
+  // Einmal aus dem Browser lesen: einmal als Startzustand, einmal für die
+  // Frage, ob wir beim ersten Besuch nach der Spielerzahl fragen.
+  const [stored] = useState(loadHistory)
   const [history, dispatch] = useReducer(
     historyReducer,
-    null,
-    () => loadHistory() ?? createHistory(1),
+    stored,
+    (saved) => saved ?? createHistory(1),
   )
+  const [asking, setAsking] = useState(stored === null)
   const state = history.present
   const player = state.player
   const score = scoreSheet(player)
@@ -35,6 +39,9 @@ export default function App() {
   // Warten mehrere Boni auf ihre Reihenfolge, ist der Block ebenfalls dicht.
   const queued = state.bonusQueue.length > 0
   const modeFor = (area: Area): AreaMode => (queued ? 'locked' : areaMode(choice, area))
+  // Die Füchse hängen am schwächsten Bereich; solange keiner da ist, gibt es
+  // nichts zu markieren.
+  const weakest = (points: number) => score.foxes > 0 && points === score.foxValue
 
   const undo = useCallback((steps: number) => dispatch({ type: 'undo', steps }), [])
   const redo = useCallback((steps: number) => dispatch({ type: 'redo', steps }), [])
@@ -62,9 +69,6 @@ export default function App() {
           <h1>Ganz schön clever · Punkteblock</h1>
           <p>Ein Block pro Gerät – Mitspieler öffnen die Seite selbst.</p>
         </div>
-        <div className="total-badge" title="Gesamtpunkte">
-          {score.total}
-        </div>
       </header>
 
       {choice && (
@@ -89,7 +93,6 @@ export default function App() {
         finished={state.finished}
         tableSize={state.tableSize}
         claimedRounds={state.claimedRounds}
-        onSetTableSize={(size) => dispatch({ type: 'setTableSize', size })}
         onComplete={() => dispatch({ type: 'completeRound' })}
         onFinish={() => dispatch({ type: 'finishGame' })}
       />
@@ -102,12 +105,16 @@ export default function App() {
             <YellowArea
               player={player}
               points={score.yellow}
+              weakest={weakest(score.yellow)}
+              foxes={score.foxes}
               mode={modeFor('yellow')}
               onMark={(row, col) => dispatch({ type: 'markYellow', row, col })}
             />
             <BlueArea
               player={player}
               points={score.blue}
+              weakest={weakest(score.blue)}
+              foxes={score.foxes}
               mode={modeFor('blue')}
               onMark={(row, col) => dispatch({ type: 'markBlue', row, col })}
             />
@@ -116,6 +123,8 @@ export default function App() {
           <GreenRow
             player={player}
             points={score.green}
+            weakest={weakest(score.green)}
+            foxes={score.foxes}
             mode={modeFor('green')}
             onSet={(count) => dispatch({ type: 'setGreen', count })}
           />
@@ -125,6 +134,8 @@ export default function App() {
             label="Orange"
             title="Orange – Würfelwert eintragen, ×2 und ×3 beachten"
             points={score.orange}
+            weakest={weakest(score.orange)}
+            foxes={score.foxes}
             values={player.orange}
             bonuses={ORANGE_BONUSES}
             multipliers={ORANGE_MULTIPLIERS}
@@ -137,6 +148,8 @@ export default function App() {
             label="Lila"
             title="Lila – jeder Wert höher als der vorige, nach einer 6 wieder frei"
             points={score.purple}
+            weakest={weakest(score.purple)}
+            foxes={score.foxes}
             values={player.purple}
             bonuses={PURPLE_BONUSES}
             allowed={purpleAllowedValues(player.purple)}
@@ -146,24 +159,28 @@ export default function App() {
         </main>
 
         <aside className="sidebar">
-          <ScorePanel score={score} />
           <HistoryPanel past={history.past} future={history.future} onUndo={undo} onRedo={redo} />
         </aside>
       </div>
 
       <footer className="footer">
         <span>Der Spielstand wird im Browser gespeichert.</span>
-        <button
-          className="btn danger"
-          onClick={() => {
-            if (confirm('Neues Spiel starten? Der aktuelle Block geht verloren.')) {
-              dispatch({ type: 'newGame' })
-            }
-          }}
-        >
+        <button className="btn danger" onClick={() => setAsking(true)}>
           Neues Spiel
         </button>
       </footer>
+
+      {asking && (
+        <NewGameDialog
+          tableSize={state.tableSize}
+          fresh={history.past.length === 0}
+          onStart={(size) => {
+            dispatch({ type: 'newGame', size })
+            setAsking(false)
+          }}
+          onCancel={() => setAsking(false)}
+        />
+      )}
 
       <Toasts notifications={state.notifications} onDismiss={dismiss} />
     </div>

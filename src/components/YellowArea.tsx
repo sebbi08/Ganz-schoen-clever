@@ -7,26 +7,32 @@ import {
 import { isYellowDiagonalComplete, isYellowLocked } from '../game/scoring'
 import type { AreaMode } from '../game/bonuses'
 import type { PlayerState } from '../game/types'
+import { AreaHead } from './AreaHead'
 import { BonusChip } from './BonusChip'
 
 interface Props {
   player: PlayerState
   points: number
+  /** Der Bereich mit den wenigsten Punkten trägt die Füchse. */
+  weakest: boolean
+  foxes: number
   mode: AreaMode
   onMark: (row: number, col: number) => void
 }
 
-export function YellowArea({ player, points, mode, onMark }: Props) {
+export function YellowArea({ player, points, weakest, foxes, mode, onMark }: Props) {
   const columnDone = YELLOW_COLUMN_POINTS.map((_, col) => player.yellow.every((row) => row[col]))
 
   return (
     <section
       className={`area yellow${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}
     >
-      <div className="area-head">
-        <span>Gelb – volle Spalten geben Punkte, volle Reihen einen Bonus</span>
-        <span className="points">{points}</span>
-      </div>
+      <AreaHead
+        text="Gelb – volle Spalten geben Punkte, volle Reihen einen Bonus"
+        points={points}
+        weakest={weakest}
+        foxes={foxes}
+      />
 
       <div className="grid">
         {YELLOW_GRID.map((row, rowIndex) => (

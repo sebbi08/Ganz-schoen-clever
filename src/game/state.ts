@@ -9,13 +9,18 @@ function nextId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${idCounter}`
 }
 
+/** Am Tisch sitzen ein bis vier Spieler. */
+export function clampTableSize(size: number): number {
+  return Math.min(4, Math.max(1, Math.round(size)))
+}
+
 export function createGame(tableSize = 1): GameState {
   // Runde 1 läuft schon, ihr Bonus gehört also sofort gutgeschrieben.
   return resolveBonuses(
     startRound({
       player: createPlayer(),
       round: 1,
-      tableSize,
+      tableSize: clampTableSize(tableSize),
       claimedRounds: [],
       finished: false,
       pendingChoices: [],
@@ -55,13 +60,12 @@ export type Action =
   | { type: 'setOrange'; index: number; value: number | null }
   | { type: 'setPurple'; index: number; value: number | null }
   | { type: 'useBonus'; sourceId: string }
-  | { type: 'setTableSize'; size: number }
   | { type: 'completeRound' }
   | { type: 'finishGame' }
   | { type: 'skipChoice' }
   | { type: 'resolveBonus'; sourceId: string }
   | { type: 'dismissNotification'; id: string }
-  | { type: 'newGame' }
+  | { type: 'newGame'; size?: number }
   | { type: 'replace'; state: GameState }
 
 function updatePlayer(state: GameState, update: (player: PlayerState) => PlayerState): GameState {
@@ -140,9 +144,6 @@ function apply(state: GameState, action: Action): GameState {
         usedBonuses: [...player.usedBonuses, action.sourceId],
       }))
 
-    case 'setTableSize':
-      return { ...state, tableSize: Math.min(4, Math.max(1, action.size)) }
-
     case 'completeRound': {
       const total = roundsFor(state.tableSize)
       if (state.round >= total) return state
@@ -173,7 +174,9 @@ function apply(state: GameState, action: Action): GameState {
       }
 
     case 'newGame':
-      return createGame(state.tableSize)
+      // Die Spielerzahl wird vor dem neuen Spiel gewählt; ohne Angabe
+      // bleibt sie, wie sie war.
+      return createGame(clampTableSize(action.size ?? state.tableSize))
 
     case 'replace':
       return action.state
@@ -214,7 +217,7 @@ export function migrateState(parsed: LegacyGameState): GameState {
   const player = parsed.player ?? parsed.players?.[parsed.activePlayer ?? 0] ?? parsed.players?.[0]
   return {
     round: parsed.round ?? 1,
-    tableSize: parsed.tableSize ?? parsed.players?.length ?? 1,
+    tableSize: clampTableSize(parsed.tableSize ?? parsed.players?.length ?? 1),
     claimedRounds: parsed.claimedRounds ?? [],
     finished: parsed.finished ?? false,
     pendingChoices: parsed.pendingChoices ?? [],

@@ -1,6 +1,7 @@
 import type { BonusId } from '../game/layout'
 import type { AreaMode } from '../game/bonuses'
 import { nextFreeIndex } from '../game/scoring'
+import { AreaHead } from './AreaHead'
 import { BonusChip } from './BonusChip'
 
 interface Props {
@@ -9,6 +10,8 @@ interface Props {
   label: string
   title: string
   points: number
+  weakest: boolean
+  foxes: number
   values: (number | null)[]
   bonuses: (BonusId | undefined)[]
   multipliers?: (1 | 2 | 3)[]
@@ -28,6 +31,8 @@ export function NumberRow({
   label,
   title,
   points,
+  weakest,
+  foxes,
   values,
   bonuses,
   multipliers,
@@ -46,10 +51,7 @@ export function NumberRow({
 
   return (
     <section className={`area ${color}${locked ? ' locked' : ''}${onlySix ? ' picking' : ''}`}>
-      <div className="area-head">
-        <span>{title}</span>
-        <span className="points">{points}</span>
-      </div>
+      <AreaHead text={title} points={points} weakest={weakest} foxes={foxes} />
 
       <div className="track">
         {values.map((value, index) => {

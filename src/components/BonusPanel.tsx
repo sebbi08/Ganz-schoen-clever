@@ -1,6 +1,7 @@
 import { SUPPLY_BONUSES } from '../game/layout'
-import { earnedBonuses } from '../game/scoring'
+import { earnedBonuses, foxCount } from '../game/scoring'
 import type { PlayerState } from '../game/types'
+import { BonusChip } from './BonusChip'
 import { SupplyTrack } from './SupplyTrack'
 
 interface Props {
@@ -9,8 +10,9 @@ interface Props {
 }
 
 /**
- * Der Vorrat an Wiederholungswürfen und Zusatzwürfeln. Farbboni tauchen hier nicht
- * auf – die werden sofort verarbeitet.
+ * Der Vorrat an Wiederholungswürfen und Zusatzwürfeln. Farbboni tauchen hier
+ * nicht auf – die werden sofort verarbeitet. Die Füchse stehen daneben: Sie
+ * werden nicht eingelöst, aber man will wissen, wie viele man hat.
  */
 export function BonusPanel({ player, onUse }: Props) {
   const earned = earnedBonuses(player)
@@ -28,6 +30,14 @@ export function BonusPanel({ player, onUse }: Props) {
           onUse={onUse}
         />
       ))}
+
+      <div className="supply-track fox-track">
+        <BonusChip bonus="fox" />
+        <span className="fox-label">Füchse</span>
+        <strong className="supply-count" title="gesammelte Füchse">
+          {foxCount(player)}
+        </strong>
+      </div>
     </div>
   )
 }
