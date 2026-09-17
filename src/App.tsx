@@ -51,31 +51,45 @@ export default function App() {
 
   useEffect(() => saveHistory(history), [history])
 
-  // Die Rundenleiste klebt oben. Ein Fühler darüber meldet, sobald sie
-  // festhängt; dann schrumpft sie auf eine Zeile.
-  const stickyRef = useRef<HTMLDivElement>(null)
+  // Sobald die Rundenleiste nach oben aus dem Bild gescrollt ist, übernimmt
+  // eine kompakte Ausgabe am oberen Rand. Der Fühler steht direkt unter der
+  // Leiste und meldet genau diesen Moment.
   const sentinelRef = useRef<HTMLDivElement>(null)
-  const [stuck, setStuck] = useState(false)
+  const pinnedRef = useRef<HTMLDivElement>(null)
+  const [pinned, setPinned] = useState(false)
 
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
-    const observer = new IntersectionObserver(([entry]) => setStuck(!entry.isIntersecting))
+    const observer = new IntersectionObserver(([entry]) => setPinned(!entry.isIntersecting))
     observer.observe(sentinel)
     return () => observer.disconnect()
   }, [])
 
-  // Die Seitenspalte klebt ebenfalls und muss wissen, wie hoch die Leiste ist.
+  /*
+   * Die angeheftete Leiste liegt über dem Block, statt im Textfluss zu
+   * stehen: Eine Leiste, die beim Anheften schrumpft, würde die Seite
+   * kürzer machen, und der Browser zöge die Scrollposition mit. Genau das
+   * fühlte sich am Telefon an, als ließe sich nicht richtig scrollen.
+   *
+   * Banner und Seitenspalte müssen dafür wissen, wie hoch sie gerade ist.
+   */
   useEffect(() => {
-    const node = stickyRef.current
-    if (!node) return
-    const publish = () =>
-      document.documentElement.style.setProperty('--sticky-h', `${node.offsetHeight}px`)
+    const node = pinnedRef.current
+    const root = document.documentElement
+    if (!node) {
+      root.style.setProperty('--pinned-h', '0px')
+      return
+    }
+    const publish = () => root.style.setProperty('--pinned-h', `${node.offsetHeight}px`)
     publish()
     const observer = new ResizeObserver(publish)
     observer.observe(node)
-    return () => observer.disconnect()
-  }, [])
+    return () => {
+      observer.disconnect()
+      root.style.setProperty('--pinned-h', '0px')
+    }
+  }, [pinned])
 
   // Strg+Z / Cmd+Z nimmt den letzten Zug zurück.
   useEffect(() => {
@@ -99,36 +113,52 @@ export default function App() {
         </div>
       </header>
 
-      <div ref={sentinelRef} className="sticky-sentinel" aria-hidden />
-
-      <div ref={stickyRef} className={`sticky-top${stuck ? ' stuck' : ''}`}>
-        {choice && (
-          <ChoiceBanner
-            choice={choice}
-            remaining={state.pendingChoices.length}
-            onSkip={() => dispatch({ type: 'skipChoice' })}
-          />
-        )}
-
-        {!choice && queued && (
-          <BonusQueue
-            queue={state.bonusQueue}
-            onResolve={(sourceId) => dispatch({ type: 'resolveBonus', sourceId })}
-          />
-        )}
-
-        <RoundBar
-          round={state.round}
-          finished={state.finished}
-          tableSize={state.tableSize}
-          claimedRounds={state.claimedRounds}
-          entries={state.roundEntries}
-          expected={expected}
-          compact={stuck}
-          onComplete={() => dispatch({ type: 'completeRound' })}
-          onFinish={() => dispatch({ type: 'finishGame' })}
+      {choice && (
+        <ChoiceBanner
+          choice={choice}
+          remaining={state.pendingChoices.length}
+          onSkip={() => dispatch({ type: 'skipChoice' })}
         />
-      </div>
+      )}
+
+      {!choice && queued && (
+        <BonusQueue
+          queue={state.bonusQueue}
+          onResolve={(sourceId) => dispatch({ type: 'resolveBonus', sourceId })}
+        />
+      )}
+
+      <RoundBar
+        round={state.round}
+        finished={state.finished}
+        tableSize={state.tableSize}
+        claimedRounds={state.claimedRounds}
+        entries={state.roundEntries}
+        expected={expected}
+        compact={false}
+        onComplete={() => dispatch({ type: 'completeRound' })}
+        onFinish={() => dispatch({ type: 'finishGame' })}
+      />
+
+      <div ref={sentinelRef} className="round-sentinel" aria-hidden />
+
+      {pinned && (
+        <div ref={pinnedRef} className="round-bar-pinned">
+          <div className="round-bar-pinned-inner">
+            <RoundBar
+              round={state.round}
+              finished={state.finished}
+              tableSize={state.tableSize}
+              claimedRounds={state.claimedRounds}
+              entries={state.roundEntries}
+              expected={expected}
+              compact
+              onComplete={() => dispatch({ type: 'completeRound' })}
+              onFinish={() => dispatch({ type: 'finishGame' })}
+            />
+          </div>
+        </div>
+      )}
 
       {state.finished && <FinalScore score={score} solo={state.tableSize === 1} />}
 
