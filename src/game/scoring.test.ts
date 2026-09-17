@@ -15,7 +15,14 @@ import {
   scoreSheet,
   yellowScore,
 } from './scoring'
-import { BLUE_GRID, ORANGE_STEPS, YELLOW_GRID, roundsFor, soloRating } from './layout'
+import {
+  BLUE_GRID,
+  ORANGE_STEPS,
+  YELLOW_GRID,
+  entriesPerRound,
+  roundsFor,
+  soloRating,
+} from './layout'
 
 function player() {
   return createPlayer()
@@ -232,6 +239,15 @@ describe('Solobewertung', () => {
     expect(soloRating(280).label).toBe('Beinahe Einstein')
     expect(soloRating(139).label).toBe('Da ist noch Luft nach oben')
     expect(soloRating(0).label).toBe('Da ist noch Luft nach oben')
+  })
+})
+
+describe('Würfel pro Runde', () => {
+  it('sind drei als aktiver Spieler plus einer je Mitspieler', () => {
+    expect(entriesPerRound(1)).toBe(4)
+    expect(entriesPerRound(2)).toBe(4)
+    expect(entriesPerRound(3)).toBe(5)
+    expect(entriesPerRound(4)).toBe(6)
   })
 })
 

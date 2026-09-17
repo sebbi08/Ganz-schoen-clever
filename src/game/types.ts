@@ -48,6 +48,13 @@ export interface GameState {
   claimedRounds: number[]
   /** Die letzte Runde ist abgeschlossen, die Endwertung steht. */
   finished: boolean
+  /**
+   * Eingetragene Würfel in der laufenden Runde. Kreuze und Zahlen aus Boni
+   * zählen nicht mit – hinter ihnen steckt kein Würfel.
+   */
+  roundEntries: number
+  /** Eingelöste Zusatzwürfel dieser Runde; jeder erlaubt einen Eintrag mehr. */
+  roundExtraDice: number
   /** Offene Zwangsauswahl; solange etwas darin liegt, ist der Block gesperrt. */
   pendingChoices: PendingChoice[]
   /**

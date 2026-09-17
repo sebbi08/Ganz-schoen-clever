@@ -309,3 +309,54 @@ describe('Lila nimmt nur gültige Werte', () => {
     expect(active(state).purple[1]).toBe(6)
   })
 })
+
+describe('Würfel pro Runde zählen', () => {
+  it('zählt, was der Spieler selbst einträgt', () => {
+    const state = run(
+      { type: 'markYellow', row: 3, col: 1 },
+      { type: 'setOrange', index: 0, value: 3 },
+    )
+    expect(state.roundEntries).toBe(2)
+  })
+
+  it('zählt Felder nicht mit, die ein Bonus schreibt', () => {
+    // Gelb Reihe 2 sind drei Kreuze und trägt automatisch eine orange 4 ein.
+    const state = run(...yellowRow2)
+    expect(active(state).orange[0]).toBe(4)
+    expect(state.roundEntries).toBe(3)
+  })
+
+  it('zählt ein Kreuz aus der Zwangsauswahl nicht mit', () => {
+    // Gelb Reihe 1 sind drei Kreuze und verlangt danach ein blaues.
+    let state = run(...yellowRow1)
+    expect(state.roundEntries).toBe(3)
+    state = reducer(state, { type: 'markBlue', row: 1, col: 0 })
+    expect(active(state).blue[1][0]).toBe(true)
+    expect(state.roundEntries).toBe(3)
+  })
+
+  it('hebt das Soll um jeden eingelösten Zusatzwürfel', () => {
+    // Runde 2 bringt den Zusatzwürfel mit.
+    let state = run({ type: 'completeRound' })
+    expect(state.roundExtraDice).toBe(0)
+    const extra = openBonuses(active(state)).find((entry) => entry.bonus === 'plus1')!
+    state = reducer(state, { type: 'useBonus', sourceId: extra.sourceId })
+    expect(state.roundExtraDice).toBe(1)
+    expect(state.roundEntries).toBe(0)
+  })
+
+  it('lässt den Wiederholungswurf außen vor', () => {
+    let state = createGame(1)
+    const reroll = openBonuses(state.player).find((entry) => entry.bonus === 'reroll')!
+    state = reducer(state, { type: 'useBonus', sourceId: reroll.sourceId })
+    expect(state.roundExtraDice).toBe(0)
+  })
+
+  it('fängt mit jeder Runde von vorn an', () => {
+    let state = run({ type: 'markYellow', row: 3, col: 1 })
+    expect(state.roundEntries).toBe(1)
+    state = reducer(state, { type: 'completeRound' })
+    expect(state.roundEntries).toBe(0)
+    expect(state.roundExtraDice).toBe(0)
+  })
+})

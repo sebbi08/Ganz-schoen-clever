@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useReducer, useState } from 'react'
-import { ORANGE_STEPS, PURPLE_STEPS } from './game/layout'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { ORANGE_STEPS, PURPLE_STEPS, entriesPerRound } from './game/layout'
 import { areaMode } from './game/bonuses'
 import type { AreaMode } from './game/bonuses'
 import type { Area } from './game/layout'
@@ -42,12 +42,40 @@ export default function App() {
   // Die Füchse hängen am schwächsten Bereich; solange keiner da ist, gibt es
   // nichts zu markieren.
   const weakest = (points: number) => score.foxes > 0 && points === score.foxValue
+  // So viele Würfel gehören in diese Runde – eingelöste Zusatzwürfel dazu.
+  const expected = entriesPerRound(state.tableSize) + state.roundExtraDice
 
   const undo = useCallback((steps: number) => dispatch({ type: 'undo', steps }), [])
   const redo = useCallback((steps: number) => dispatch({ type: 'redo', steps }), [])
   const dismiss = useCallback((id: string) => dispatch({ type: 'dismissNotification', id }), [])
 
   useEffect(() => saveHistory(history), [history])
+
+  // Die Rundenleiste klebt oben. Ein Fühler darüber meldet, sobald sie
+  // festhängt; dann schrumpft sie auf eine Zeile.
+  const stickyRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const [stuck, setStuck] = useState(false)
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver(([entry]) => setStuck(!entry.isIntersecting))
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [])
+
+  // Die Seitenspalte klebt ebenfalls und muss wissen, wie hoch die Leiste ist.
+  useEffect(() => {
+    const node = stickyRef.current
+    if (!node) return
+    const publish = () =>
+      document.documentElement.style.setProperty('--sticky-h', `${node.offsetHeight}px`)
+    publish()
+    const observer = new ResizeObserver(publish)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
 
   // Strg+Z / Cmd+Z nimmt den letzten Zug zurück.
   useEffect(() => {
@@ -71,31 +99,38 @@ export default function App() {
         </div>
       </header>
 
-      {choice && (
-        <ChoiceBanner
-          choice={choice}
-          remaining={state.pendingChoices.length}
-          onSkip={() => dispatch({ type: 'skipChoice' })}
-        />
-      )}
+      <div ref={sentinelRef} className="sticky-sentinel" aria-hidden />
 
-      {!choice && queued && (
-        <BonusQueue
-          queue={state.bonusQueue}
-          onResolve={(sourceId) => dispatch({ type: 'resolveBonus', sourceId })}
+      <div ref={stickyRef} className={`sticky-top${stuck ? ' stuck' : ''}`}>
+        {choice && (
+          <ChoiceBanner
+            choice={choice}
+            remaining={state.pendingChoices.length}
+            onSkip={() => dispatch({ type: 'skipChoice' })}
+          />
+        )}
+
+        {!choice && queued && (
+          <BonusQueue
+            queue={state.bonusQueue}
+            onResolve={(sourceId) => dispatch({ type: 'resolveBonus', sourceId })}
+          />
+        )}
+
+        <RoundBar
+          round={state.round}
+          finished={state.finished}
+          tableSize={state.tableSize}
+          claimedRounds={state.claimedRounds}
+          entries={state.roundEntries}
+          expected={expected}
+          compact={stuck}
+          onComplete={() => dispatch({ type: 'completeRound' })}
+          onFinish={() => dispatch({ type: 'finishGame' })}
         />
-      )}
+      </div>
 
       {state.finished && <FinalScore score={score} solo={state.tableSize === 1} />}
-
-      <RoundBar
-        round={state.round}
-        finished={state.finished}
-        tableSize={state.tableSize}
-        claimedRounds={state.claimedRounds}
-        onComplete={() => dispatch({ type: 'completeRound' })}
-        onFinish={() => dispatch({ type: 'finishGame' })}
-      />
 
       <BonusPanel player={player} onUse={(sourceId) => dispatch({ type: 'useBonus', sourceId })} />
 

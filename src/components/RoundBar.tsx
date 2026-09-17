@@ -8,6 +8,11 @@ interface Props {
   /** Wie viele am Tisch sitzen – bestimmt allein die Rundenzahl. */
   tableSize: number
   claimedRounds: number[]
+  /** Eingetragene Würfel dieser Runde und wie viele zu erwarten sind. */
+  entries: number
+  expected: number
+  /** Beim Scrollen bleibt nur die Zeile mit dem Knopf stehen. */
+  compact: boolean
   onComplete: () => void
   onFinish: () => void
 }
@@ -17,6 +22,9 @@ export function RoundBar({
   finished,
   tableSize,
   claimedRounds,
+  entries,
+  expected,
+  compact,
   onComplete,
   onFinish,
 }: Props) {
@@ -24,11 +32,13 @@ export function RoundBar({
   const lastRound = round >= total
   // Der Bonus der nächsten Runde gibt es beim Abschließen dieser Runde.
   const nextBonus = ROUNDS[round]?.bonus
+  // Genug Würfel für eine Runde eingetragen? Dann fällt der Knopf auf.
+  const party = !finished && entries >= expected
 
   return (
-    <div className="panel">
+    <div className={`panel round-bar${compact ? ' compact' : ''}`}>
       <h2>
-        Runde {round} von {total}
+        {compact ? `Runde ${round}/${total}` : `Runde ${round} von ${total}`}
         <span className="table-size">
           {tableSize} {tableSize === 1 ? 'Spieler' : 'Spieler am Tisch'}
         </span>
@@ -54,10 +64,12 @@ export function RoundBar({
           )
         })}
         <button
-          className="btn round-done"
+          className={`btn round-done${party ? ' party' : ''}`}
           onClick={lastRound ? onFinish : onComplete}
           disabled={finished}
+          title={`${entries} von ${expected} Würfeln dieser Runde eingetragen`}
         >
+          {party && <span aria-hidden>🎉</span>}
           {finished ? (
             'Spiel beendet'
           ) : lastRound ? (
