@@ -1,6 +1,6 @@
 import { ROUNDS, roundsFor } from './layout'
 import { applyBonus, resolveBonuses, satisfiesChoice } from './bonuses'
-import { createPlayer, earnedBonuses, isBlueGap } from './scoring'
+import { createPlayer, earnedBonuses, isBlueGap, purpleAllowedValues } from './scoring'
 import type { GameState, PlayerState } from './types'
 
 let idCounter = 0
@@ -126,6 +126,9 @@ function apply(state: GameState, action: Action): GameState {
       }))
 
     case 'setPurple':
+      // Lila nimmt nur Werte an, die die Reihenfolge einhalten.
+      if (action.value !== null && !purpleAllowedValues(state.player.purple).includes(action.value))
+        return state
       return updatePlayer(state, (player) => ({
         ...player,
         purple: player.purple.map((value, index) => (index === action.index ? action.value : value)),

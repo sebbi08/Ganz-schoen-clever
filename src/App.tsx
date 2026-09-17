@@ -3,7 +3,7 @@ import { ORANGE_STEPS, PURPLE_STEPS } from './game/layout'
 import { areaMode } from './game/bonuses'
 import type { AreaMode } from './game/bonuses'
 import type { Area } from './game/layout'
-import { scoreSheet } from './game/scoring'
+import { purpleAllowedValues, scoreSheet } from './game/scoring'
 import { createHistory, historyReducer, loadHistory, saveHistory } from './game/history'
 import { BlueArea } from './components/BlueArea'
 import { BonusPanel } from './components/BonusPanel'
@@ -130,6 +130,7 @@ export default function App() {
             points={score.purple}
             values={player.purple}
             bonuses={PURPLE_BONUSES}
+            allowed={purpleAllowedValues(player.purple)}
             mode={modeFor('purple')}
             onSet={(index, value) => dispatch({ type: 'setPurple', index, value })}
           />

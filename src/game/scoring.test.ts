@@ -10,6 +10,7 @@ import {
   nextFreeIndex,
   openBonuses,
   orangeScore,
+  purpleAllowedValues,
   purpleScore,
   scoreSheet,
   yellowScore,
@@ -192,6 +193,25 @@ describe('offene Boni', () => {
     p.manualBonuses = [{ id: 'm1', bonus: 'plus1', origin: 'Rundenbonus 2' }]
     expect(openBonuses(p)).toHaveLength(1)
     expect(openBonuses(p)[0].origin).toBe('Rundenbonus 2')
+  })
+})
+
+describe('lila Reihenfolge', () => {
+  it('lässt am Anfang jeden Wert zu', () => {
+    expect(purpleAllowedValues([null, null])).toEqual([1, 2, 3, 4, 5, 6])
+  })
+
+  it('verlangt danach einen höheren Wert', () => {
+    expect(purpleAllowedValues([3, null])).toEqual([4, 5, 6])
+    expect(purpleAllowedValues([5, null])).toEqual([6])
+  })
+
+  it('gibt die Reihe nach einer 6 wieder frei', () => {
+    expect(purpleAllowedValues([2, 5, 6, null])).toEqual([1, 2, 3, 4, 5, 6])
+  })
+
+  it('nimmt in einer vollen Reihe nichts mehr an', () => {
+    expect(purpleAllowedValues([1, 2])).toEqual([])
   })
 })
 

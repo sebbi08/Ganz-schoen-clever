@@ -280,3 +280,30 @@ describe('Mehrere Boni auf einmal', () => {
     expect(reducer(state, { type: 'resolveBonus', sourceId: 'gibt-es-nicht' })).toBe(state)
   })
 })
+
+describe('Lila nimmt nur gültige Werte', () => {
+  it('weist einen Wert ab, der nicht höher ist', () => {
+    const state = run({ type: 'setPurple', index: 0, value: 4 })
+    expect(reducer(state, { type: 'setPurple', index: 1, value: 4 })).toBe(state)
+    expect(reducer(state, { type: 'setPurple', index: 1, value: 3 })).toBe(state)
+    expect(reducer(state, { type: 'setPurple', index: 1, value: 5 }).player.purple[1]).toBe(5)
+  })
+
+  it('lässt nach einer 6 wieder alles zu', () => {
+    let state = run({ type: 'setPurple', index: 0, value: 6 })
+    state = reducer(state, { type: 'setPurple', index: 1, value: 1 })
+    expect(active(state).purple[1]).toBe(1)
+  })
+
+  it('lässt den Bonus \u201elila 6\u201c ungehindert durch', () => {
+    // Gelbe Reihe 2 schreibt eine orange 4; fuer Lila nehmen wir die blaue
+    // Spalte 3, die eine 6 eintraegt.
+    const state = run(
+      { type: 'setPurple', index: 0, value: 6 },
+      { type: 'markBlue', row: 0, col: 2 },
+      { type: 'markBlue', row: 1, col: 2 },
+      { type: 'markBlue', row: 2, col: 2 },
+    )
+    expect(active(state).purple[1]).toBe(6)
+  })
+})
