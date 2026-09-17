@@ -15,7 +15,7 @@ import {
   scoreSheet,
   yellowScore,
 } from './scoring'
-import { BLUE_GRID, ORANGE_STEPS, YELLOW_GRID, roundsFor } from './layout'
+import { BLUE_GRID, ORANGE_STEPS, YELLOW_GRID, roundsFor, soloRating } from './layout'
 
 function player() {
   return createPlayer()
@@ -222,6 +222,16 @@ describe('Reihen-Hilfsfunktionen', () => {
     expect(lastFilledIndex([1, 2, null])).toBe(1)
     expect(lastFilledIndex([null, null])).toBe(null)
     expect(lastFilledIndex([1, 2])).toBe(1)
+  })
+})
+
+describe('Solobewertung', () => {
+  it('ordnet die Punktstufen zu', () => {
+    expect(soloRating(300).label).toBe('Ganz schön clever!')
+    expect(soloRating(281).label).toBe('Ganz schön clever!')
+    expect(soloRating(280).label).toBe('Beinahe Einstein')
+    expect(soloRating(139).label).toBe('Da ist noch Luft nach oben')
+    expect(soloRating(0).label).toBe('Da ist noch Luft nach oben')
   })
 })
 

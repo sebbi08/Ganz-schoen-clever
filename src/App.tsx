@@ -9,6 +9,7 @@ import { BlueArea } from './components/BlueArea'
 import { BonusPanel } from './components/BonusPanel'
 import { BonusQueue } from './components/BonusQueue'
 import { ChoiceBanner } from './components/ChoiceBanner'
+import { FinalScore } from './components/FinalScore'
 import { GreenRow } from './components/GreenRow'
 import { HistoryPanel } from './components/HistoryPanel'
 import { NumberRow } from './components/NumberRow'
@@ -77,12 +78,16 @@ export default function App() {
         />
       )}
 
+      {state.finished && <FinalScore score={score} solo={state.tableSize === 1} />}
+
       <RoundBar
         round={state.round}
+        finished={state.finished}
         tableSize={state.tableSize}
         claimedRounds={state.claimedRounds}
         onSetTableSize={(size) => dispatch({ type: 'setTableSize', size })}
         onComplete={() => dispatch({ type: 'completeRound' })}
+        onFinish={() => dispatch({ type: 'finishGame' })}
       />
 
       <BonusPanel player={player} onUse={(sourceId) => dispatch({ type: 'useBonus', sourceId })} />

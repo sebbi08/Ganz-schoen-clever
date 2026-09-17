@@ -192,6 +192,33 @@ export function roundsFor(playerCount: number): number {
   return ROUNDS.filter((round) => playerCount <= round.maxPlayers).length
 }
 
+/**
+ * Bewertung einer Solopartie. Die Punktgrenzen stehen so auf dem Block,
+ * die Bezeichnungen sind eigene Worte.
+ */
+export interface SoloRating {
+  /** Ab dieser Punktzahl gilt die Stufe. */
+  min: number
+  label: string
+}
+
+export const SOLO_RATINGS: readonly SoloRating[] = [
+  { min: 281, label: 'Ganz schön clever!' },
+  { min: 260, label: 'Beinahe Einstein' },
+  { min: 240, label: 'Geniale Partie' },
+  { min: 220, label: 'Beeindruckend' },
+  { min: 200, label: 'Hut ab' },
+  { min: 180, label: 'Starkes Ergebnis' },
+  { min: 160, label: 'Das war ganz gut' },
+  { min: 140, label: 'Nicht schlecht, geht aber besser' },
+  { min: 0, label: 'Da ist noch Luft nach oben' },
+]
+
+/** Stufe zu einer Punktzahl. */
+export function soloRating(total: number): SoloRating {
+  return SOLO_RATINGS.find((step) => total >= step.min) ?? SOLO_RATINGS[SOLO_RATINGS.length - 1]
+}
+
 /** Vorratsfelder je Leiste auf dem Originalblock. */
 export const SUPPLY_SLOTS = 8
 

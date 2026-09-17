@@ -275,3 +275,43 @@ describe('Wiederholen', () => {
     expect(historyReducer(fresh, { type: 'redo', steps: 1 })).toBe(fresh)
   })
 })
+
+describe('Spielende', () => {
+  /** Bis zur letzten Runde durchschalten. */
+  function lastRound(tableSize: number): HistoryState {
+    let state = createHistory(tableSize)
+    for (let index = 0; index < 6; index++) {
+      state = historyReducer(state, { type: 'completeRound' })
+      if (state.present.pendingChoices.length > 0) {
+        state = historyReducer(state, { type: 'markYellow', row: 0, col: 0 })
+      }
+    }
+    return state
+  }
+
+  it('lässt sich erst in der letzten Runde beenden', () => {
+    const early = createHistory(1)
+    expect(historyReducer(early, { type: 'finishGame' })).toBe(early)
+
+    const state = historyReducer(lastRound(1), { type: 'finishGame' })
+    expect(state.present.finished).toBe(true)
+    expect(state.past[state.past.length - 1].label).toBe('Spiel beendet')
+  })
+
+  it('beendet nur einmal', () => {
+    const state = historyReducer(lastRound(4), { type: 'finishGame' })
+    expect(historyReducer(state, { type: 'finishGame' })).toBe(state)
+  })
+
+  it('lässt sich zurücknehmen', () => {
+    let state = historyReducer(lastRound(1), { type: 'finishGame' })
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(state.present.finished).toBe(false)
+  })
+
+  it('startet ein neues Spiel unbeendet', () => {
+    let state = historyReducer(lastRound(1), { type: 'finishGame' })
+    state = historyReducer(state, { type: 'newGame' })
+    expect(state.present.finished).toBe(false)
+  })
+})

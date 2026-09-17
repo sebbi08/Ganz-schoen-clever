@@ -79,6 +79,8 @@ export function describe(state: GameState, action: Action): Described {
       return { label: 'Bonus verfallen lassen', tone: 'fox' }
     case 'completeRound':
       return { label: `Runde ${state.round} abgeschlossen`, tone: 'neutral' }
+    case 'finishGame':
+      return { label: 'Spiel beendet', tone: 'neutral' }
     default:
       return { label: 'Zug', tone: 'neutral' }
   }
@@ -98,6 +100,7 @@ const UNDOABLE: Action['type'][] = [
   'skipChoice',
   'resolveBonus',
   'completeRound',
+  'finishGame',
 ]
 
 /** Hat der Zug den Block tatsächlich verändert? */
@@ -107,7 +110,8 @@ function changesBoard(before: GameState, after: GameState): boolean {
     before.pendingChoices !== after.pendingChoices ||
     before.bonusQueue !== after.bonusQueue ||
     before.round !== after.round ||
-    before.claimedRounds !== after.claimedRounds
+    before.claimedRounds !== after.claimedRounds ||
+    before.finished !== after.finished
   )
 }
 

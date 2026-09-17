@@ -46,6 +46,8 @@ export interface GameState {
   tableSize: number
   /** Runden, deren Bonus bereits gutgeschrieben wurde. */
   claimedRounds: number[]
+  /** Die letzte Runde ist abgeschlossen, die Endwertung steht. */
+  finished: boolean
   /** Offene Zwangsauswahl; solange etwas darin liegt, ist der Block gesperrt. */
   pendingChoices: PendingChoice[]
   /**

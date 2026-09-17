@@ -17,6 +17,7 @@ export function createGame(tableSize = 1): GameState {
       round: 1,
       tableSize,
       claimedRounds: [],
+      finished: false,
       pendingChoices: [],
       bonusQueue: [],
       notifications: [],
@@ -56,6 +57,7 @@ export type Action =
   | { type: 'useBonus'; sourceId: string }
   | { type: 'setTableSize'; size: number }
   | { type: 'completeRound' }
+  | { type: 'finishGame' }
   | { type: 'skipChoice' }
   | { type: 'resolveBonus'; sourceId: string }
   | { type: 'dismissNotification'; id: string }
@@ -152,6 +154,11 @@ function apply(state: GameState, action: Action): GameState {
       return startRound({ ...state, round: state.round + 1 })
     }
 
+    case 'finishGame':
+      // Erst nach der letzten Runde, und nur einmal.
+      if (state.finished || state.round < roundsFor(state.tableSize)) return state
+      return { ...state, finished: true }
+
     case 'skipChoice':
       if (state.pendingChoices.length === 0) return state
       return { ...state, pendingChoices: state.pendingChoices.slice(1) }
@@ -213,6 +220,7 @@ export function migrateState(parsed: LegacyGameState): GameState {
     round: parsed.round ?? 1,
     tableSize: parsed.tableSize ?? parsed.players?.length ?? 1,
     claimedRounds: parsed.claimedRounds ?? [],
+    finished: parsed.finished ?? false,
     pendingChoices: parsed.pendingChoices ?? [],
     bonusQueue: parsed.bonusQueue ?? [],
     notifications: [],

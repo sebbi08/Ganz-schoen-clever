@@ -44,9 +44,13 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   gutgeschrieben – man startet also schon mit einem Wiederholungswurf aus
   Runde 1. Der Knopf schaltet genau eine Runde weiter und bringt
   deren Bonus mit; überspringen geht nicht, zurück nur über den Verlauf.
-  Erledigte Runden bekommen einen Haken, nach der letzten ist der Knopf
-  gesperrt. Die Rundenzahl richtet sich nach der Spielerzahl (1–2 Spieler:
-  6 Runden, 3 Spieler: 5, 4 Spieler: 4); Boni gibt es in den Runden 1–4.
+  Erledigte Runden bekommen einen Haken. Die Rundenzahl richtet sich nach
+  der Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5, 4 Spieler: 4);
+  Boni gibt es in den Runden 1–4.
+- **Endwertung**: In der letzten Runde beendet derselbe Knopf das Spiel und
+  klappt die Abrechnung auf – Gesamtpunkte, die fünf Bereiche und die
+  Füchse mit ihrem Wert. Am Einzelblock steht die Stufe dazu, die der Block
+  für diese Punktzahl vorsieht. Zurücknehmen geht auch das.
 - **Ein Block pro Gerät**: Mitspieler öffnen die Seite selbst, jeder Browser
   führt seinen eigenen Stand. Am Tisch stellt man nur die Spielerzahl ein,
   weil sie die Rundenzahl bestimmt.

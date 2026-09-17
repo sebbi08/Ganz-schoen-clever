@@ -1013,3 +1013,69 @@ div.cell {
   font-size: 11px;
   color: var(--muted);
 }
+
+/* Endwertung */
+
+.final-score {
+  border-color: var(--yellow);
+}
+
+.final-total {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.final-total strong {
+  font-size: 38px;
+  line-height: 1;
+  color: var(--yellow);
+}
+
+.final-total span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.final-rating {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.final-areas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.final-area {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--panel-2);
+  border-left: 3px solid var(--neutral);
+}
+
+.final-area.yellow { border-left-color: var(--yellow); }
+.final-area.blue { border-left-color: var(--blue); }
+.final-area.green { border-left-color: var(--green); }
+.final-area.orange { border-left-color: var(--orange); }
+.final-area.purple { border-left-color: var(--purple); }
+.final-area.fox { border-left-color: var(--fox); }
+
+.final-area .label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.final-area .value {
+  font-weight: 700;
+}
+
+.final-score .empty-hint {
+  margin-bottom: 0;
+}
