@@ -13,14 +13,14 @@ function run(...actions: HistoryAction[]): HistoryState {
 const active = (state: HistoryState) => state.present.player
 
 const yellowRow2: HistoryAction[] = [
-  { type: 'toggleYellow', row: 1, col: 0 },
-  { type: 'toggleYellow', row: 1, col: 1 },
-  { type: 'toggleYellow', row: 1, col: 3 },
+  { type: 'markYellow', row: 1, col: 0 },
+  { type: 'markYellow', row: 1, col: 1 },
+  { type: 'markYellow', row: 1, col: 3 },
 ]
 
 describe('Verlauf', () => {
   it('merkt sich jeden Zug, der den Block verändert', () => {
-    const state = run({ type: 'toggleYellow', row: 0, col: 0 }, { type: 'setGreen', count: 1 })
+    const state = run({ type: 'markYellow', row: 0, col: 0 }, { type: 'setGreen', count: 1 })
     expect(state.past).toHaveLength(2)
     expect(state.past.map((entry) => `${entry.tone}:${entry.label}`)).toEqual([
       'yellow:Gelbes Kreuz · Reihe 1, Spalte 1',
@@ -30,14 +30,14 @@ describe('Verlauf', () => {
 
   it('nimmt Züge ohne Blockänderung nicht auf', () => {
     const state = run(
-      { type: 'toggleYellow', row: 0, col: 0 },
+      { type: 'markYellow', row: 0, col: 0 },
       { type: 'dismissNotification', id: 'gibt-es-nicht' },
     )
     expect(state.past).toHaveLength(1)
   })
 
   it('macht den letzten Zug rückgängig', () => {
-    let state = run({ type: 'toggleYellow', row: 0, col: 0 })
+    let state = run({ type: 'markYellow', row: 0, col: 0 })
     expect(active(state).yellow[0][0]).toBe(true)
     state = historyReducer(state, { type: 'undo', steps: 1 })
     expect(active(state).yellow[0][0]).toBe(false)
@@ -48,8 +48,11 @@ describe('Verlauf', () => {
     let state = run(...yellowRow2)
     state = historyReducer(state, { type: 'undo', steps: 3 })
     // Feld 3 der Reihe ist vorgekreuzt und bleibt es auch.
-    expect([active(state).yellow[1][0], active(state).yellow[1][1], active(state).yellow[1][3]])
-      .toEqual([false, false, false])
+    expect([
+      active(state).yellow[1][0],
+      active(state).yellow[1][1],
+      active(state).yellow[1][3],
+    ]).toEqual([false, false, false])
     expect(state.past).toHaveLength(0)
   })
 
@@ -63,9 +66,9 @@ describe('Verlauf', () => {
 
   it('macht eine offene Zwangsauswahl rückgängig', () => {
     let state = run(
-      { type: 'toggleYellow', row: 0, col: 0 },
-      { type: 'toggleYellow', row: 0, col: 1 },
-      { type: 'toggleYellow', row: 0, col: 2 },
+      { type: 'markYellow', row: 0, col: 0 },
+      { type: 'markYellow', row: 0, col: 1 },
+      { type: 'markYellow', row: 0, col: 2 },
     )
     expect(state.present.pendingChoices).toHaveLength(1)
     state = historyReducer(state, { type: 'undo', steps: 1 })
@@ -76,9 +79,9 @@ describe('Verlauf', () => {
   it('bleibt auch bei gesperrtem Block bedienbar', () => {
     // Die Zwangsauswahl sperrt den Reducer, der Verlauf greift trotzdem.
     let state = run(
-      { type: 'toggleYellow', row: 0, col: 0 },
-      { type: 'toggleYellow', row: 0, col: 1 },
-      { type: 'toggleYellow', row: 0, col: 2 },
+      { type: 'markYellow', row: 0, col: 0 },
+      { type: 'markYellow', row: 0, col: 1 },
+      { type: 'markYellow', row: 0, col: 2 },
       { type: 'setGreen', count: 3 },
     )
     expect(active(state).green).toBe(0) // gesperrt, also nicht im Verlauf
@@ -93,12 +96,22 @@ describe('Verlauf', () => {
   })
 
   it('begrenzt die Länge', () => {
-    let state = createHistory(1)
-    for (let index = 0; index < MAX_HISTORY + 12; index++) {
-      // Hin und her schalten – jeder Zug landet im Verlauf.
-      state = historyReducer(state, { type: 'toggleYellow', row: 0, col: 0 })
+    const fresh = createHistory(1)
+    // Ein voller Verlauf von Hand: ein Kreuz laesst sich nicht mehr
+    // wegklicken, so viele echte Zuege gibt der Block nicht her.
+    const full: HistoryState = {
+      ...fresh,
+      past: Array.from({ length: MAX_HISTORY }, (_, index) => ({
+        state: fresh.present,
+        label: `Zug ${index + 1}`,
+        tone: 'neutral' as const,
+      })),
     }
+    const state = historyReducer(full, { type: 'markYellow', row: 0, col: 0 })
     expect(state.past).toHaveLength(MAX_HISTORY)
+    // Der aelteste Eintrag faellt hinten raus, der neue steht vorne.
+    expect(state.past[0].label).toBe('Zug 2')
+    expect(state.past[MAX_HISTORY - 1].label).toBe('Gelbes Kreuz · Reihe 1, Spalte 1')
   })
 
   it('startet mit einem neuen Spiel ohne Verlauf', () => {
@@ -110,7 +123,6 @@ describe('Verlauf', () => {
     // Das neue Spiel startet wieder mit dem Bonus aus Runde 1.
     expect(active(state).manualBonuses).toHaveLength(1)
   })
-
 })
 
 describe('Rundenbonus', () => {
@@ -136,7 +148,7 @@ describe('Rundenbonus', () => {
   it('meldet sich per Toast', () => {
     const state = run({ type: 'completeRound' })
     expect(state.present.notifications.map((n) => n.text)).toContain(
-      '+1 auf einen Würfel · Rundenbonus 2',
+      'Zusatzwürfel (+1) · Rundenbonus 2',
     )
   })
 
@@ -158,7 +170,7 @@ describe('Rundenbonus', () => {
       state = historyReducer(state, { type: 'completeRound' })
       // Runde 4 verlangt ein Kreuz; erst danach geht es weiter.
       if (state.present.pendingChoices.length > 0) {
-        state = historyReducer(state, { type: 'toggleYellow', row: 0, col: 0 })
+        state = historyReducer(state, { type: 'markYellow', row: 0, col: 0 })
       }
     }
     expect(active(state).manualBonuses.map((entry) => entry.bonus)).toEqual([
@@ -194,14 +206,12 @@ describe('Rundenbonus', () => {
 })
 
 describe('Wiederholen', () => {
-  const gelb = (col: number): HistoryAction => ({ type: 'toggleYellow', row: 0, col })
+  const gelb = (col: number): HistoryAction => ({ type: 'markYellow', row: 0, col })
 
   it('legt zurückgenommene Züge auf den Stapel', () => {
     let state = run(gelb(0), gelb(1))
     state = historyReducer(state, { type: 'undo', steps: 1 })
-    expect(state.future.map((entry) => entry.label)).toEqual([
-      'Gelbes Kreuz · Reihe 1, Spalte 2',
-    ])
+    expect(state.future.map((entry) => entry.label)).toEqual(['Gelbes Kreuz · Reihe 1, Spalte 2'])
     expect(active(state).yellow[0][1]).toBe(false)
   })
 
@@ -263,5 +273,45 @@ describe('Wiederholen', () => {
   it('läuft bei leerem Stapel ins Leere', () => {
     const fresh = createHistory(1)
     expect(historyReducer(fresh, { type: 'redo', steps: 1 })).toBe(fresh)
+  })
+})
+
+describe('Spielende', () => {
+  /** Bis zur letzten Runde durchschalten. */
+  function lastRound(tableSize: number): HistoryState {
+    let state = createHistory(tableSize)
+    for (let index = 0; index < 6; index++) {
+      state = historyReducer(state, { type: 'completeRound' })
+      if (state.present.pendingChoices.length > 0) {
+        state = historyReducer(state, { type: 'markYellow', row: 0, col: 0 })
+      }
+    }
+    return state
+  }
+
+  it('lässt sich erst in der letzten Runde beenden', () => {
+    const early = createHistory(1)
+    expect(historyReducer(early, { type: 'finishGame' })).toBe(early)
+
+    const state = historyReducer(lastRound(1), { type: 'finishGame' })
+    expect(state.present.finished).toBe(true)
+    expect(state.past[state.past.length - 1].label).toBe('Spiel beendet')
+  })
+
+  it('beendet nur einmal', () => {
+    const state = historyReducer(lastRound(4), { type: 'finishGame' })
+    expect(historyReducer(state, { type: 'finishGame' })).toBe(state)
+  })
+
+  it('lässt sich zurücknehmen', () => {
+    let state = historyReducer(lastRound(1), { type: 'finishGame' })
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(state.present.finished).toBe(false)
+  })
+
+  it('startet ein neues Spiel unbeendet', () => {
+    let state = historyReducer(lastRound(1), { type: 'finishGame' })
+    state = historyReducer(state, { type: 'newGame' })
+    expect(state.present.finished).toBe(false)
   })
 })

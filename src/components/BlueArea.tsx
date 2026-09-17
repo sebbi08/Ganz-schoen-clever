@@ -8,14 +8,16 @@ interface Props {
   player: PlayerState
   points: number
   mode: AreaMode
-  onToggle: (row: number, col: number) => void
+  onMark: (row: number, col: number) => void
 }
 
-export function BlueArea({ player, points, mode, onToggle }: Props) {
+export function BlueArea({ player, points, mode, onMark }: Props) {
   const count = blueMarkCount(player)
 
   return (
-    <section className={`area blue${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}>
+    <section
+      className={`area blue${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}
+    >
       <div className="area-head">
         <span>Blau – Punkte nach Anzahl der Kreuze</span>
         <span className="points">{points}</span>
@@ -23,7 +25,11 @@ export function BlueArea({ player, points, mode, onToggle }: Props) {
 
       <div className="blue-track">
         {BLUE_POINTS.slice(1).map((value, index) => (
-          <div key={value} className={count >= index + 1 ? 'reached' : ''} title={`${index + 1} Kreuze`}>
+          <div
+            key={value}
+            className={count >= index + 1 ? 'reached' : ''}
+            title={`${index + 1} Kreuze`}
+          >
             {value}
           </div>
         ))}
@@ -43,7 +49,7 @@ export function BlueArea({ player, points, mode, onToggle }: Props) {
                   key={colIndex}
                   className={`cell${marked ? ' marked' : ''}`}
                   disabled={disabled}
-                  onClick={() => onToggle(rowIndex, colIndex)}
+                  onClick={() => onMark(rowIndex, colIndex)}
                   aria-label={`Blau ${value}`}
                   aria-pressed={marked}
                 >
@@ -59,7 +65,7 @@ export function BlueArea({ player, points, mode, onToggle }: Props) {
           {BLUE_COLUMN_BONUS.map((bonus, col) => {
             const done = player.blue.every((row, rowIndex) => isBlueGap(rowIndex, col) || row[col])
             return (
-              <div key={col} style={{ textAlign: 'center', opacity: done ? 1 : 0.45 }}>
+              <div key={col} className={`bonus-slot${done ? ' done' : ''}`}>
                 <BonusChip bonus={bonus} />
               </div>
             )

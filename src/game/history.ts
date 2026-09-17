@@ -44,9 +44,12 @@ type Described = Pick<HistoryEntry, 'label' | 'tone'>
 /** Beschreibung und Farbe eines Zuges, gebildet aus dem Zustand davor. */
 export function describe(state: GameState, action: Action): Described {
   switch (action.type) {
-    case 'toggleYellow':
-      return { label: `Gelbes Kreuz · Reihe ${action.row + 1}, Spalte ${action.col + 1}`, tone: 'yellow' }
-    case 'toggleBlue': {
+    case 'markYellow':
+      return {
+        label: `Gelbes Kreuz · Reihe ${action.row + 1}, Spalte ${action.col + 1}`,
+        tone: 'yellow',
+      }
+    case 'markBlue': {
       const value = BLUE_GRID[action.row][action.col]
       return { label: `Blaues Kreuz · ${value ?? ''}`, tone: 'blue' }
     }
@@ -69,10 +72,18 @@ export function describe(state: GameState, action: Action): Described {
         tone: 'neutral',
       }
     }
+    case 'resolveBonus': {
+      const entry = state.bonusQueue.find((candidate) => candidate.sourceId === action.sourceId)
+      if (!entry) return { label: 'Bonus eingetragen', tone: 'neutral' }
+      const info = BONUSES[entry.bonus]
+      return { label: `${info.label} · ${entry.origin}`, tone: info.color }
+    }
     case 'skipChoice':
       return { label: 'Bonus verfallen lassen', tone: 'fox' }
     case 'completeRound':
       return { label: `Runde ${state.round} abgeschlossen`, tone: 'neutral' }
+    case 'finishGame':
+      return { label: 'Spiel beendet', tone: 'neutral' }
     default:
       return { label: 'Zug', tone: 'neutral' }
   }
@@ -83,14 +94,16 @@ export function describe(state: GameState, action: Action): Described {
  * Wegklicken einer Meldung sind keine Züge.
  */
 const UNDOABLE: Action['type'][] = [
-  'toggleYellow',
-  'toggleBlue',
+  'markYellow',
+  'markBlue',
   'setGreen',
   'setOrange',
   'setPurple',
   'useBonus',
   'skipChoice',
+  'resolveBonus',
   'completeRound',
+  'finishGame',
 ]
 
 /** Hat der Zug den Block tatsächlich verändert? */
@@ -98,8 +111,10 @@ function changesBoard(before: GameState, after: GameState): boolean {
   return (
     before.player !== after.player ||
     before.pendingChoices !== after.pendingChoices ||
+    before.bonusQueue !== after.bonusQueue ||
     before.round !== after.round ||
-    before.claimedRounds !== after.claimedRounds
+    before.claimedRounds !== after.claimedRounds ||
+    before.finished !== after.finished
   )
 }
 

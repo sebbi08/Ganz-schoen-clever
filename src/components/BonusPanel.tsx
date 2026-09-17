@@ -9,7 +9,7 @@ interface Props {
 }
 
 /**
- * Der Vorrat an Wiederholungswürfen und +1. Farbboni tauchen hier nicht
+ * Der Vorrat an Wiederholungswürfen und Zusatzwürfeln. Farbboni tauchen hier nicht
  * auf – die werden sofort verarbeitet.
  */
 export function BonusPanel({ player, onUse }: Props) {

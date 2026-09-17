@@ -40,7 +40,7 @@ export interface BonusInfo {
 
 export const BONUSES: Record<BonusId, BonusInfo> = {
   reroll: { label: 'Wiederholungswurf', short: '↻', kind: 'action', color: 'neutral' },
-  plus1: { label: '+1 auf einen Würfel', short: '+1', kind: 'action', color: 'neutral' },
+  plus1: { label: 'Zusatzwürfel (+1)', short: '+1', kind: 'action', color: 'neutral' },
   fox: { label: 'Fuchs', short: '🦊', kind: 'fox', color: 'fox' },
   yellow: { label: 'Gelbes Kreuz (frei wählbar)', short: '✗', kind: 'mark', color: 'yellow' },
   blue: { label: 'Blaues Kreuz (frei wählbar)', short: '✗', kind: 'mark', color: 'blue' },
@@ -172,7 +172,7 @@ export const PURPLE_STEPS: readonly PurpleStep[] = [
 /* ---------------------------------------------------------------- Runden */
 
 export interface RoundInfo {
-  /** Rundenbonus, den jeder Spieler am Ende der Runde erhält. */
+  /** Rundenbonus, den jeder Spieler zu Beginn der Runde erhält. */
   bonus?: BonusId
   /** Bis zu wie vielen Spielern diese Runde noch gespielt wird. */
   maxPlayers: number
@@ -190,6 +190,33 @@ export const ROUNDS: readonly RoundInfo[] = [
 /** Runden 1–4 immer, Runde 5 bis 3 Spieler, Runde 6 bis 2 Spieler. */
 export function roundsFor(playerCount: number): number {
   return ROUNDS.filter((round) => playerCount <= round.maxPlayers).length
+}
+
+/**
+ * Bewertung einer Solopartie. Die Punktgrenzen stehen so auf dem Block,
+ * die Bezeichnungen sind eigene Worte.
+ */
+export interface SoloRating {
+  /** Ab dieser Punktzahl gilt die Stufe. */
+  min: number
+  label: string
+}
+
+export const SOLO_RATINGS: readonly SoloRating[] = [
+  { min: 281, label: 'Ganz schön clever!' },
+  { min: 260, label: 'Beinahe Einstein' },
+  { min: 240, label: 'Geniale Partie' },
+  { min: 220, label: 'Beeindruckend' },
+  { min: 200, label: 'Hut ab' },
+  { min: 180, label: 'Starkes Ergebnis' },
+  { min: 160, label: 'Das war ganz gut' },
+  { min: 140, label: 'Nicht schlecht, geht aber besser' },
+  { min: 0, label: 'Da ist noch Luft nach oben' },
+]
+
+/** Stufe zu einer Punktzahl. */
+export function soloRating(total: number): SoloRating {
+  return SOLO_RATINGS.find((step) => total >= step.min) ?? SOLO_RATINGS[SOLO_RATINGS.length - 1]
 }
 
 /** Vorratsfelder je Leiste auf dem Originalblock. */

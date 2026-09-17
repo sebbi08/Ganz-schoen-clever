@@ -31,8 +31,17 @@ function Rows({ entries, undone }: { entries: HistoryEntry[]; undone?: boolean }
  */
 export function HistoryPanel({ past, future, onUndo, onRedo }: Props) {
   const [armed, setArmed] = useState(false)
+  const [seen, setSeen] = useState(past.length)
   const last = past[past.length - 1]
   const next = future[0]
+
+  // Ein neuer Zug entschärft eine offene Rückfrage. Das gehört während des
+  // Renderns korrigiert, nicht in einen Effekt – sonst rendert die Seite
+  // zweimal und zeigt dazwischen kurz die alte Rückfrage.
+  if (seen !== past.length) {
+    setSeen(past.length)
+    setArmed(false)
+  }
 
   // Die Rückfrage verfällt von selbst, damit sie nicht scharf liegen bleibt.
   useEffect(() => {
@@ -40,9 +49,6 @@ export function HistoryPanel({ past, future, onUndo, onRedo }: Props) {
     const timer = setTimeout(() => setArmed(false), ARMED_MS)
     return () => clearTimeout(timer)
   }, [armed])
-
-  // Ein neuer Zug entschärft eine offene Rückfrage.
-  useEffect(() => setArmed(false), [past.length])
 
   return (
     <div className="panel">

@@ -86,6 +86,7 @@ button {
   }
 }
 
+.board,
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -580,6 +581,24 @@ button {
   border-radius: 3px;
   margin-right: 8px;
   vertical-align: middle;
+  background: var(--neutral);
+}
+
+.swatch.yellow { background: var(--yellow); }
+.swatch.blue { background: var(--blue); }
+.swatch.green { background: var(--green); }
+.swatch.orange { background: var(--orange); }
+.swatch.purple { background: var(--purple); }
+.swatch.fox { background: var(--fox); }
+
+/* Bonusfelder am Rand der Raster: blass, bis sie verdient sind. */
+.bonus-slot {
+  text-align: center;
+  opacity: 0.45;
+}
+
+.bonus-slot.done {
+  opacity: 1;
 }
 
 .score-table .note {
@@ -609,6 +628,10 @@ button {
 
 .value-bar-label b {
   color: var(--text);
+}
+
+.value-bar-hint {
+  white-space: nowrap;
 }
 
 .value-btn {
@@ -977,4 +1000,134 @@ div.cell {
 .size-btn.active {
   border-color: var(--yellow);
   color: var(--yellow);
+}
+
+/* Reihenfolge mehrerer Boni */
+
+.choice-banner.queue {
+  flex-wrap: wrap;
+}
+
+.queue-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.queue-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  padding: 6px 10px;
+}
+
+.queue-label {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.queue-option .origin {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Endwertung */
+
+.final-score {
+  border-color: var(--yellow);
+}
+
+.final-total {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.final-total strong {
+  font-size: 38px;
+  line-height: 1;
+  color: var(--yellow);
+}
+
+.final-total span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.final-rating {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.final-areas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.final-area {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--panel-2);
+  border-left: 3px solid var(--neutral);
+}
+
+.final-area.yellow { border-left-color: var(--yellow); }
+.final-area.blue { border-left-color: var(--blue); }
+.final-area.green { border-left-color: var(--green); }
+.final-area.orange { border-left-color: var(--orange); }
+.final-area.purple { border-left-color: var(--purple); }
+.final-area.fox { border-left-color: var(--fox); }
+
+.final-area .label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.final-area .value {
+  font-weight: 700;
+}
+
+.final-score .empty-hint {
+  margin-bottom: 0;
+}
+
+/* ------------------------------------------------------- Schmale Schirme */
+
+/*
+ * Am Telefon standen die elf Felder von Grün, Orange und Lila nebeneinander
+ * und schrumpften auf knapp 26 Pixel – zu wenig zum Treffen. Sie brechen
+ * deshalb auf zwei Reihen um; dieselbe Reihenfolge, nur gefaltet.
+ */
+@media (max-width: 720px) {
+  .track {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    row-gap: 12px;
+  }
+
+  .value-bar-label {
+    flex: 1 0 100%;
+  }
+
+  .value-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .slot {
+    width: 26px;
+    height: 26px;
+  }
+
+  .size-btn {
+    width: 32px;
+    height: 32px;
+  }
 }

@@ -10,11 +10,12 @@ import {
   nextFreeIndex,
   openBonuses,
   orangeScore,
+  purpleAllowedValues,
   purpleScore,
   scoreSheet,
   yellowScore,
 } from './scoring'
-import { BLUE_GRID, ORANGE_STEPS, YELLOW_GRID, roundsFor } from './layout'
+import { BLUE_GRID, ORANGE_STEPS, YELLOW_GRID, roundsFor, soloRating } from './layout'
 
 function player() {
   return createPlayer()
@@ -195,6 +196,25 @@ describe('offene Boni', () => {
   })
 })
 
+describe('lila Reihenfolge', () => {
+  it('lässt am Anfang jeden Wert zu', () => {
+    expect(purpleAllowedValues([null, null])).toEqual([1, 2, 3, 4, 5, 6])
+  })
+
+  it('verlangt danach einen höheren Wert', () => {
+    expect(purpleAllowedValues([3, null])).toEqual([4, 5, 6])
+    expect(purpleAllowedValues([5, null])).toEqual([6])
+  })
+
+  it('gibt die Reihe nach einer 6 wieder frei', () => {
+    expect(purpleAllowedValues([2, 5, 6, null])).toEqual([1, 2, 3, 4, 5, 6])
+  })
+
+  it('nimmt in einer vollen Reihe nichts mehr an', () => {
+    expect(purpleAllowedValues([1, 2])).toEqual([])
+  })
+})
+
 describe('Reihen-Hilfsfunktionen', () => {
   it('finden das nächste freie und das letzte gefüllte Feld', () => {
     expect(nextFreeIndex([1, 2, null, null])).toBe(2)
@@ -202,6 +222,16 @@ describe('Reihen-Hilfsfunktionen', () => {
     expect(lastFilledIndex([1, 2, null])).toBe(1)
     expect(lastFilledIndex([null, null])).toBe(null)
     expect(lastFilledIndex([1, 2])).toBe(1)
+  })
+})
+
+describe('Solobewertung', () => {
+  it('ordnet die Punktstufen zu', () => {
+    expect(soloRating(300).label).toBe('Ganz schön clever!')
+    expect(soloRating(281).label).toBe('Ganz schön clever!')
+    expect(soloRating(280).label).toBe('Beinahe Einstein')
+    expect(soloRating(139).label).toBe('Da ist noch Luft nach oben')
+    expect(soloRating(0).label).toBe('Da ist noch Luft nach oben')
   })
 })
 

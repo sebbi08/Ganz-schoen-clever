@@ -3,22 +3,27 @@ import { BonusChip } from './BonusChip'
 
 interface Props {
   round: number
+  /** Die letzte Runde ist abgerechnet. */
+  finished: boolean
   /** Wie viele am Tisch sitzen – bestimmt allein die Rundenzahl. */
   tableSize: number
   claimedRounds: number[]
   onSetTableSize: (size: number) => void
   onComplete: () => void
+  onFinish: () => void
 }
 
 export function RoundBar({
   round,
+  finished,
   tableSize,
   claimedRounds,
   onSetTableSize,
   onComplete,
+  onFinish,
 }: Props) {
   const total = roundsFor(tableSize)
-  const finished = round >= total
+  const lastRound = round >= total
   // Der Bonus der nächsten Runde gibt es beim Abschließen dieser Runde.
   const nextBonus = ROUNDS[round]?.bonus
 
@@ -52,13 +57,23 @@ export function RoundBar({
               title={claimedRounds.includes(number) ? 'Bonus schon erhalten' : undefined}
             >
               <span className="no">{number}</span>
-              {info.bonus ? <BonusChip bonus={info.bonus} small /> : <span className="hint">–</span>}
+              {info.bonus ? (
+                <BonusChip bonus={info.bonus} small />
+              ) : (
+                <span className="hint">–</span>
+              )}
             </div>
           )
         })}
-        <button className="btn round-done" onClick={onComplete} disabled={finished}>
+        <button
+          className="btn round-done"
+          onClick={lastRound ? onFinish : onComplete}
+          disabled={finished}
+        >
           {finished ? (
-            'Spiel zu Ende'
+            'Spiel beendet'
+          ) : lastRound ? (
+            'Spiel beenden – Endwertung'
           ) : (
             <>
               Runde {round + 1} beginnen →

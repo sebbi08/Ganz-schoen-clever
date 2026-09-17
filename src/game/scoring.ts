@@ -54,6 +54,22 @@ export function lastFilledIndex(values: readonly (number | null)[]): number | nu
   return index < 0 ? null : index
 }
 
+/** Die sechs Würfelaugen. */
+const DICE = [1, 2, 3, 4, 5, 6]
+
+/**
+ * Welche Werte darf das nächste freie lila Feld aufnehmen? Jede Zahl muss
+ * höher sein als die vorige; nach einer 6 ist die nächste wieder frei.
+ * Eine volle Reihe nimmt nichts mehr an.
+ */
+export function purpleAllowedValues(values: readonly (number | null)[]): number[] {
+  const index = nextFreeIndex(values)
+  if (index === null) return []
+  const previous = index === 0 ? null : values[index - 1]
+  if (previous === null || previous === 6) return [...DICE]
+  return DICE.filter((value) => value > previous)
+}
+
 /* ------------------------------------------------------------------ Punkte */
 
 export function yellowScore(player: PlayerState): number {
@@ -190,7 +206,7 @@ export function foxCount(player: PlayerState): number {
 
 /**
  * Vorrat: Boni, die nicht sofort verarbeitet werden, sondern liegen bleiben,
- * bis man sie einlöst – Wiederholungswürfe und +1. Farbboni und Füchse
+ * bis man sie einlöst – Wiederholungswürfe und Zusatzwürfel. Farbboni und Füchse
  * tauchen hier nicht auf, die laufen automatisch durch (siehe bonuses.ts).
  */
 export function openBonuses(player: PlayerState): EarnedBonus[] {

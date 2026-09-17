@@ -19,7 +19,7 @@ export interface PlayerState {
   purple: (number | null)[]
   /** Farbboni, die bereits sofort verarbeitet wurden (sourceId). */
   resolvedBonuses: string[]
-  /** Eingelöste Vorratsboni: Wiederholungswurf, +1 (sourceId). */
+  /** Eingelöste Vorratsboni: Wiederholungswurf, Zusatzwürfel (sourceId). */
   usedBonuses: string[]
   /** Zusätzlich gutgeschriebene Boni – heute sind das die Rundenboni. */
   manualBonuses: ManualBonus[]
@@ -46,8 +46,16 @@ export interface GameState {
   tableSize: number
   /** Runden, deren Bonus bereits gutgeschrieben wurde. */
   claimedRounds: number[]
+  /** Die letzte Runde ist abgeschlossen, die Endwertung steht. */
+  finished: boolean
   /** Offene Zwangsauswahl; solange etwas darin liegt, ist der Block gesperrt. */
   pendingChoices: PendingChoice[]
+  /**
+   * Boni, die gleichzeitig freigeschaltet wurden und noch auf ihre
+   * Ausführung warten. Die Reihenfolge bestimmt der Spieler, deshalb bleibt
+   * der Block gesperrt, bis die Liste leer ist.
+   */
+  bonusQueue: EarnedBonus[]
   /** Kurzmeldungen über verarbeitete Boni. */
   notifications: Notification[]
 }

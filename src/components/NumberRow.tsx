@@ -12,6 +12,8 @@ interface Props {
   values: (number | null)[]
   bonuses: (BonusId | undefined)[]
   multipliers?: (1 | 2 | 3)[]
+  /** Erlaubte Würfelwerte; ohne Angabe sind alle sechs erlaubt (Orange). */
+  allowed?: number[]
   mode: AreaMode
   onSet: (index: number, value: number) => void
 }
@@ -29,6 +31,7 @@ export function NumberRow({
   values,
   bonuses,
   multipliers,
+  allowed,
   mode,
   onSet,
 }: Props) {
@@ -37,6 +40,9 @@ export function NumberRow({
   const onlySix = mode === 'pick'
   const target = nextFreeIndex(values)
   const targetMultiplier = target === null ? 1 : (multipliers?.[target] ?? 1)
+  // Sind nicht mehr alle Werte erlaubt, steht der Grund neben dem Feld.
+  const limited = allowed !== undefined && allowed.length > 0 && allowed.length < 6
+  const above = allowed && allowed.length > 0 ? Math.min(...allowed) - 1 : 0
 
   return (
     <section className={`area ${color}${locked ? ' locked' : ''}${onlySix ? ' picking' : ''}`}>
@@ -73,6 +79,7 @@ export function NumberRow({
             <>
               Feld {target + 1}
               {targetMultiplier > 1 && <b> ×{targetMultiplier}</b>}
+              {limited && <span className="value-bar-hint"> · höher als {above}</span>}
             </>
           )}
         </span>
@@ -80,7 +87,12 @@ export function NumberRow({
           <button
             key={value}
             className="value-btn"
-            disabled={locked || target === null || (onlySix && value !== 6)}
+            disabled={
+              locked ||
+              target === null ||
+              (onlySix && value !== 6) ||
+              (allowed !== undefined && !allowed.includes(value))
+            }
             onClick={() => target !== null && onSet(target, value)}
             aria-label={`${label}: ${value} eintragen`}
           >

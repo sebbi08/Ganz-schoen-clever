@@ -29,8 +29,13 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
     blaue Feld, das nächste grüne, oder eine 6 in Orange oder Lila.
   - Ketten lösen sich von selbst auf: Schreibt ein Bonus in ein Feld, das
     seinerseits einen Bonus trägt, wird auch der sofort abgearbeitet.
+  - *Mehrere Boni auf einmal* – etwa ein blaues Kreuz, das Reihe und Spalte
+    zugleich abschließt – werden zur Auswahl gestellt: Der angeklickte kommt
+    zuerst dran, denn die Reihenfolge gehört laut Regel dem Spieler. Bleibt
+    nur noch einer übrig, läuft er ohne Rückfrage durch.
 - **Vorrat wie auf dem Block**, direkt unter der Rundenleiste:
-  Wiederholungswürfe und +1 haben je eine Leiste mit acht Kreisen. Jeder
+  Wiederholungswurf und Zusatzwürfel (auf dem Block das »+1«-Symbol: einen
+  der sechs Würfel zusätzlich nutzen) haben je eine Leiste mit acht Kreisen. Jeder
   erhaltene Bonus füllt einen Kreis, ein Klick hakt ihn beim Einlösen ab –
   und das endgültig, zurück geht es nur über den Verlauf. Eingelöste rutschen
   nach vorn, damit die offenen zusammenhängend am Ende stehen; rechts steht
@@ -39,15 +44,20 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   gutgeschrieben – man startet also schon mit einem Wiederholungswurf aus
   Runde 1. Der Knopf schaltet genau eine Runde weiter und bringt
   deren Bonus mit; überspringen geht nicht, zurück nur über den Verlauf.
-  Erledigte Runden bekommen einen Haken, nach der letzten ist der Knopf
-  gesperrt. Die Rundenzahl richtet sich nach der Spielerzahl (1–2 Spieler:
-  6 Runden, 3 Spieler: 5, 4 Spieler: 4); Boni gibt es in den Runden 1–4.
+  Erledigte Runden bekommen einen Haken. Die Rundenzahl richtet sich nach
+  der Spielerzahl (1–2 Spieler: 6 Runden, 3 Spieler: 5, 4 Spieler: 4);
+  Boni gibt es in den Runden 1–4.
+- **Endwertung**: In der letzten Runde beendet derselbe Knopf das Spiel und
+  klappt die Abrechnung auf – Gesamtpunkte, die fünf Bereiche und die
+  Füchse mit ihrem Wert. Am Einzelblock steht die Stufe dazu, die der Block
+  für diese Punktzahl vorsieht. Zurücknehmen geht auch das.
 - **Ein Block pro Gerät**: Mitspieler öffnen die Seite selbst, jeder Browser
   führt seinen eigenen Stand. Am Tisch stellt man nur die Spielerzahl ein,
   weil sie die Rundenzahl bestimmt.
 - **Gesetzt ist gesetzt**: Ein Kreuz oder eine Zahl lässt sich nicht einzeln
   zurücknehmen – wie auf Papier. Korrigiert wird über den **Verlauf**: Er
-  listet die letzten 30 Züge, jeden in der Farbe seines Bereichs. Zurück
+  zeigt die letzten acht Züge, jeden in der Farbe seines Bereichs; gemerkt
+  werden 30, so weit reicht also auch das Zurücknehmen. Zurück
   nehmen lässt sich der jeweils letzte, und das erst auf den zweiten Klick –
   der erste fragt nach und verfällt nach vier Sekunden von selbst. Mit dem
   Zug verschwinden auch die Boni, die er ausgelöst hat.
@@ -56,16 +66,27 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   einzeln **wiederholen** – solange kein neuer Zug dazwischenkommt, denn der
   leert den Stapel. Strg+Z nimmt zurück, Strg+Umschalt+Z wiederholt (bzw.
   Cmd).
+- **Auf dem Telefon bedienbar**: Unter 720 Pixel Breite brechen die elf
+  Felder von Grün, Orange und Lila auf zwei Reihen um, statt auf
+  Fingernagelgröße zu schrumpfen; Zahlentasten, Vorratskreise und die
+  Spielerzahl werden mit.
 - **Spielstand bleibt erhalten** (localStorage), auch nach dem Neuladen.
 
 ## Entwicklung
 
 ```bash
 npm install
-npm run dev      # Entwicklungsserver
-npm test         # Wertungslogik testen
-npm run build    # Produktionsbuild nach dist/
+npm run dev           # Entwicklungsserver
+npm test              # Wertungslogik testen
+npm run typecheck     # TypeScript prüfen
+npm run lint          # ESLint
+npm run format        # Prettier über den Quelltext
+npm run build         # Produktionsbuild nach dist/
 ```
+
+Dieselben Schritte laufen in der CI. Prettier kümmert sich nur um den
+TypeScript-Quelltext: Stylesheet, README und `index.html` sind von Hand
+gesetzt und stehen in `.prettierignore`.
 
 ## Aufbau
 

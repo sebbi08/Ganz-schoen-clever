@@ -13,14 +13,16 @@ interface Props {
   player: PlayerState
   points: number
   mode: AreaMode
-  onToggle: (row: number, col: number) => void
+  onMark: (row: number, col: number) => void
 }
 
-export function YellowArea({ player, points, mode, onToggle }: Props) {
+export function YellowArea({ player, points, mode, onMark }: Props) {
   const columnDone = YELLOW_COLUMN_POINTS.map((_, col) => player.yellow.every((row) => row[col]))
 
   return (
-    <section className={`area yellow${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}>
+    <section
+      className={`area yellow${mode === 'pick' ? ' picking' : ''}${mode === 'locked' ? ' locked' : ''}`}
+    >
       <div className="area-head">
         <span>Gelb – volle Spalten geben Punkte, volle Reihen einen Bonus</span>
         <span className="points">{points}</span>
@@ -39,7 +41,7 @@ export function YellowArea({ player, points, mode, onToggle }: Props) {
                   key={colIndex}
                   className={`cell${marked ? ' marked' : ''}${locked ? ' locked' : ''}`}
                   disabled={disabled}
-                  onClick={() => onToggle(rowIndex, colIndex)}
+                  onClick={() => onMark(rowIndex, colIndex)}
                   aria-label={`Gelb Reihe ${rowIndex + 1} Spalte ${colIndex + 1}`}
                   aria-pressed={marked}
                 >
@@ -58,7 +60,7 @@ export function YellowArea({ player, points, mode, onToggle }: Props) {
             </div>
           ))}
           <span
-            style={{ opacity: isYellowDiagonalComplete(player) ? 1 : 0.45 }}
+            className={`bonus-slot${isYellowDiagonalComplete(player) ? ' done' : ''}`}
             title="Bonus für die Diagonale 3–1–2–6"
           >
             <BonusChip bonus={YELLOW_DIAGONAL_BONUS} />

@@ -1,11 +1,11 @@
 import type { Score } from '../game/types'
 
 const AREAS = [
-  { key: 'yellow', label: 'Gelb', color: 'var(--yellow)' },
-  { key: 'blue', label: 'Blau', color: 'var(--blue)' },
-  { key: 'green', label: 'Grün', color: 'var(--green)' },
-  { key: 'orange', label: 'Orange', color: 'var(--orange)' },
-  { key: 'purple', label: 'Lila', color: 'var(--purple)' },
+  { key: 'yellow', label: 'Gelb' },
+  { key: 'blue', label: 'Blau' },
+  { key: 'green', label: 'Grün' },
+  { key: 'orange', label: 'Orange' },
+  { key: 'purple', label: 'Lila' },
 ] as const
 
 export function ScorePanel({ score }: { score: Score }) {
@@ -17,7 +17,7 @@ export function ScorePanel({ score }: { score: Score }) {
           {AREAS.map((area) => (
             <tr key={area.key}>
               <td>
-                <span className="swatch" style={{ background: area.color }} />
+                <span className={`swatch ${area.key}`} />
                 {area.label}
                 {score[area.key] === score.foxValue && score.foxes > 0 && (
                   <span className="note"> · schwächster Bereich</span>
@@ -28,7 +28,7 @@ export function ScorePanel({ score }: { score: Score }) {
           ))}
           <tr>
             <td>
-              <span className="swatch" style={{ background: 'var(--fox)' }} />
+              <span className="swatch fox" />
               Füchse
               <span className="note">
                 {' '}

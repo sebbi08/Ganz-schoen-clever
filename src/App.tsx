@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useReducer } from 'react'
 import { ORANGE_STEPS, PURPLE_STEPS } from './game/layout'
 import { areaMode } from './game/bonuses'
-import { scoreSheet } from './game/scoring'
+import type { AreaMode } from './game/bonuses'
+import type { Area } from './game/layout'
+import { purpleAllowedValues, scoreSheet } from './game/scoring'
 import { createHistory, historyReducer, loadHistory, saveHistory } from './game/history'
 import { BlueArea } from './components/BlueArea'
 import { BonusPanel } from './components/BonusPanel'
+import { BonusQueue } from './components/BonusQueue'
 import { ChoiceBanner } from './components/ChoiceBanner'
+import { FinalScore } from './components/FinalScore'
 import { GreenRow } from './components/GreenRow'
 import { HistoryPanel } from './components/HistoryPanel'
 import { NumberRow } from './components/NumberRow'
@@ -19,11 +23,18 @@ const ORANGE_MULTIPLIERS = ORANGE_STEPS.map((step) => step.multiplier)
 const PURPLE_BONUSES = PURPLE_STEPS.map((step) => step.bonus)
 
 export default function App() {
-  const [history, dispatch] = useReducer(historyReducer, null, () => loadHistory() ?? createHistory(1))
+  const [history, dispatch] = useReducer(
+    historyReducer,
+    null,
+    () => loadHistory() ?? createHistory(1),
+  )
   const state = history.present
   const player = state.player
   const score = scoreSheet(player)
   const choice = state.pendingChoices[0] ?? null
+  // Warten mehrere Boni auf ihre Reihenfolge, ist der Block ebenfalls dicht.
+  const queued = state.bonusQueue.length > 0
+  const modeFor = (area: Area): AreaMode => (queued ? 'locked' : areaMode(choice, area))
 
   const undo = useCallback((steps: number) => dispatch({ type: 'undo', steps }), [])
   const redo = useCallback((steps: number) => dispatch({ type: 'redo', steps }), [])
@@ -64,37 +75,48 @@ export default function App() {
         />
       )}
 
+      {!choice && queued && (
+        <BonusQueue
+          queue={state.bonusQueue}
+          onResolve={(sourceId) => dispatch({ type: 'resolveBonus', sourceId })}
+        />
+      )}
+
+      {state.finished && <FinalScore score={score} solo={state.tableSize === 1} />}
+
       <RoundBar
         round={state.round}
+        finished={state.finished}
         tableSize={state.tableSize}
         claimedRounds={state.claimedRounds}
         onSetTableSize={(size) => dispatch({ type: 'setTableSize', size })}
         onComplete={() => dispatch({ type: 'completeRound' })}
+        onFinish={() => dispatch({ type: 'finishGame' })}
       />
 
       <BonusPanel player={player} onUse={(sourceId) => dispatch({ type: 'useBonus', sourceId })} />
 
       <div className="columns">
-        <main style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <main className="board">
           <div className="grids">
             <YellowArea
               player={player}
               points={score.yellow}
-              mode={areaMode(choice, 'yellow')}
-              onToggle={(row, col) => dispatch({ type: 'toggleYellow', row, col })}
+              mode={modeFor('yellow')}
+              onMark={(row, col) => dispatch({ type: 'markYellow', row, col })}
             />
             <BlueArea
               player={player}
               points={score.blue}
-              mode={areaMode(choice, 'blue')}
-              onToggle={(row, col) => dispatch({ type: 'toggleBlue', row, col })}
+              mode={modeFor('blue')}
+              onMark={(row, col) => dispatch({ type: 'markBlue', row, col })}
             />
           </div>
 
           <GreenRow
             player={player}
             points={score.green}
-            mode={areaMode(choice, 'green')}
+            mode={modeFor('green')}
             onSet={(count) => dispatch({ type: 'setGreen', count })}
           />
 
@@ -106,7 +128,7 @@ export default function App() {
             values={player.orange}
             bonuses={ORANGE_BONUSES}
             multipliers={ORANGE_MULTIPLIERS}
-            mode={areaMode(choice, 'orange')}
+            mode={modeFor('orange')}
             onSet={(index, value) => dispatch({ type: 'setOrange', index, value })}
           />
 
@@ -117,19 +139,15 @@ export default function App() {
             points={score.purple}
             values={player.purple}
             bonuses={PURPLE_BONUSES}
-            mode={areaMode(choice, 'purple')}
+            allowed={purpleAllowedValues(player.purple)}
+            mode={modeFor('purple')}
             onSet={(index, value) => dispatch({ type: 'setPurple', index, value })}
           />
         </main>
 
         <aside className="sidebar">
           <ScorePanel score={score} />
-          <HistoryPanel
-            past={history.past}
-            future={history.future}
-            onUndo={undo}
-            onRedo={redo}
-          />
+          <HistoryPanel past={history.past} future={history.future} onUndo={undo} onRedo={redo} />
         </aside>
       </div>
 

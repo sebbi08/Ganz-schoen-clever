@@ -1,20 +1,8 @@
 import { BONUSES, GREEN_STEPS, NUMBER_BONUS } from './layout'
 import type { Area, PickBonus } from './layout'
-import {
-  earnedBonuses,
-  hasFreeBlue,
-  hasFreeYellow,
-  isBlueGap,
-  nextFreeIndex,
-} from './scoring'
+import { earnedBonuses, hasFreeBlue, hasFreeYellow, isBlueGap, nextFreeIndex } from './scoring'
 import type { Action } from './state'
-import type {
-  EarnedBonus,
-  GameState,
-  Notification,
-  PendingChoice,
-  PlayerState,
-} from './types'
+import type { EarnedBonus, GameState, Notification, PendingChoice, PlayerState } from './types'
 
 /**
  * Sofortverarbeitung der Farbboni.
@@ -27,7 +15,7 @@ import type {
  *   ohnehin nur ein legales Ziel.
  * - Gelbes und blaues Kreuz sind frei wählbar und werden deshalb als
  *   Zwangsauswahl gestellt: der Block bleibt gesperrt, bis das Feld steht.
- * - Füchse, Wiederholungswürfe und +1 verändern den Block nicht und werden
+ * - Füchse, Wiederholungswürfe und Zusatzwürfel verändern den Block nicht und werden
  *   nur gemeldet beziehungsweise in den Vorrat gelegt.
  *
  * Jeder Schritt kann neue Boni auslösen (Ketten), deshalb läuft die
@@ -47,10 +35,7 @@ function notify(state: GameState, text: string, tone: Notification['tone']): Gam
   }
 }
 
-function updatePlayer(
-  state: GameState,
-  update: (player: PlayerState) => PlayerState,
-): GameState {
+function updatePlayer(state: GameState, update: (player: PlayerState) => PlayerState): GameState {
   return { ...state, player: update(state.player) }
 }
 
@@ -75,7 +60,7 @@ function hasTarget(player: PlayerState, bonus: PickBonus): boolean {
 }
 
 /** Wickelt genau einen frisch freigeschalteten Bonus ab. */
-function applyBonus(state: GameState, entry: EarnedBonus): GameState {
+export function applyBonus(state: GameState, entry: EarnedBonus): GameState {
   const info = BONUSES[entry.bonus]
   const player = state.player
   let next = markResolved(state, entry.sourceId)
@@ -121,7 +106,7 @@ function applyBonus(state: GameState, entry: EarnedBonus): GameState {
       return notify(next, `Fuchs · ${entry.origin}`, 'fox')
 
     default:
-      // Wiederholungswurf und +1 wandern in den Vorrat.
+      // Wiederholungswurf und Zusatzwürfel wandern in den Vorrat.
       return notify(next, `${info.label} · ${entry.origin}`, info.color)
   }
 }
@@ -148,17 +133,39 @@ export function resolveBonuses(state: GameState): GameState {
       pendingChoices: current.pendingChoices.filter((choice) => earnedIds.has(choice.sourceId)),
     }
   }
+  if (current.bonusQueue.some((entry) => !earnedIds.has(entry.sourceId))) {
+    current = {
+      ...current,
+      bonusQueue: current.bonusQueue.filter((entry) => earnedIds.has(entry.sourceId)),
+    }
+  }
 
   // Ketten auflösen; die Obergrenze ist eine reine Notbremse.
   for (let guard = 0; guard < 60; guard++) {
     const active = current.player
     const resolved = new Set(active.resolvedBonuses)
     const pending = new Set(current.pendingChoices.map((choice) => choice.sourceId))
-    const entry = earnedBonuses(active).find(
-      (candidate) => !resolved.has(candidate.sourceId) && !pending.has(candidate.sourceId),
+    const queued = new Set(current.bonusQueue.map((entry) => entry.sourceId))
+    const fresh = earnedBonuses(active).filter(
+      (candidate) =>
+        !resolved.has(candidate.sourceId) &&
+        !pending.has(candidate.sourceId) &&
+        !queued.has(candidate.sourceId),
     )
-    if (!entry) break
-    current = applyBonus(current, entry)
+    const open = [...current.bonusQueue, ...fresh]
+    if (open.length === 0) break
+
+    // Genau ein offener Bonus: Es gibt nichts zu entscheiden.
+    if (open.length === 1) {
+      current = applyBonus({ ...current, bonusQueue: [] }, open[0])
+      continue
+    }
+
+    // Mehrere auf einen Schlag: Die Regel überlässt die Reihenfolge dem
+    // Spieler, also warten sie hier auf seinen Klick. Ohne Zuwachs bleibt
+    // der Zustand, wie er ist – sonst gälte jeder Aufruf als Änderung.
+    if (fresh.length > 0) current = { ...current, bonusQueue: open }
+    break
   }
 
   return current
@@ -180,20 +187,14 @@ export function areaMode(choice: PendingChoice | null, area: Area): AreaMode {
 }
 
 /** Erfüllt dieser Zug die offene Auswahl? */
-export function satisfiesChoice(
-  state: GameState,
-  choice: PendingChoice,
-  action: Action,
-): boolean {
+export function satisfiesChoice(state: GameState, choice: PendingChoice, action: Action): boolean {
   const player = state.player
   const any = choice.bonus === 'anyCrossOr6'
 
   switch (action.type) {
-    case 'toggleYellow':
-      return (
-        (any || choice.bonus === 'yellow') && !player.yellow[action.row][action.col]
-      )
-    case 'toggleBlue':
+    case 'markYellow':
+      return (any || choice.bonus === 'yellow') && !player.yellow[action.row][action.col]
+    case 'markBlue':
       return (
         (any || choice.bonus === 'blue') &&
         !isBlueGap(action.row, action.col) &&
