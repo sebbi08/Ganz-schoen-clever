@@ -50,8 +50,12 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   listet die letzten 30 Züge, jeden in der Farbe seines Bereichs. Zurück
   nehmen lässt sich der jeweils letzte, und das erst auf den zweiten Klick –
   der erste fragt nach und verfällt nach vier Sekunden von selbst. Mit dem
-  Zug verschwinden auch die Boni, die er ausgelöst hat. Strg+Z (bzw. Cmd+Z)
-  geht ebenfalls.
+  Zug verschwinden auch die Boni, die er ausgelöst hat.
+
+  Zurückgenommene Züge stehen durchgestrichen über der Liste und lassen sich
+  einzeln **wiederholen** – solange kein neuer Zug dazwischenkommt, denn der
+  leert den Stapel. Strg+Z nimmt zurück, Strg+Umschalt+Z wiederholt (bzw.
+  Cmd).
 - **Spielstand bleibt erhalten** (localStorage), auch nach dem Neuladen.
 
 ## Entwicklung
