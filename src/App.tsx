@@ -26,6 +26,7 @@ export default function App() {
   const choice = state.pendingChoices[0] ?? null
 
   const undo = useCallback((steps: number) => dispatch({ type: 'undo', steps }), [])
+  const redo = useCallback((steps: number) => dispatch({ type: 'redo', steps }), [])
   const dismiss = useCallback((id: string) => dispatch({ type: 'dismissNotification', id }), [])
 
   useEffect(() => saveHistory(history), [history])
@@ -33,14 +34,15 @@ export default function App() {
   // Strg+Z / Cmd+Z nimmt den letzten Zug zurück.
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
-        event.preventDefault()
-        undo(1)
-      }
+      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z') return
+      event.preventDefault()
+      // Umschalt dazu wiederholt, wie überall sonst auch.
+      if (event.shiftKey) redo(1)
+      else undo(1)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [undo])
+  }, [undo, redo])
 
   return (
     <div className="app">
@@ -122,7 +124,12 @@ export default function App() {
 
         <aside className="sidebar">
           <ScorePanel score={score} />
-          <HistoryPanel past={history.past} onUndo={undo} />
+          <HistoryPanel
+            past={history.past}
+            future={history.future}
+            onUndo={undo}
+            onRedo={redo}
+          />
         </aside>
       </div>
 

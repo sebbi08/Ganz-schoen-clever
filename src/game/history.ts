@@ -26,9 +26,18 @@ export interface HistoryEntry {
 export interface HistoryState {
   present: GameState
   past: HistoryEntry[]
+  /**
+   * Zurückgenommene Züge, ältester zuerst – bereit zum Wiederholen.
+   * Ihr `state` ist der Zustand *nach* dem jeweiligen Zug. Sobald ein
+   * echter Zug kommt, ist der Stapel hinfällig.
+   */
+  future: HistoryEntry[]
 }
 
-export type HistoryAction = Action | { type: 'undo'; steps: number }
+export type HistoryAction =
+  | Action
+  | { type: 'undo'; steps: number }
+  | { type: 'redo'; steps: number }
 
 type Described = Pick<HistoryEntry, 'label' | 'tone'>
 
@@ -94,15 +103,49 @@ function changesBoard(before: GameState, after: GameState): boolean {
   )
 }
 
+/** Aktionen, die den Wiederholen-Stapel stehen lassen. */
+const KEEPS_FUTURE: Action['type'][] = ['dismissNotification']
+
+/** Alte Meldungen nicht erneut einblenden. */
+function quiet(state: GameState): GameState {
+  return { ...state, notifications: [] }
+}
+
 export function historyReducer(state: HistoryState, action: HistoryAction): HistoryState {
   if (action.type === 'undo') {
     const steps = Math.min(Math.max(1, action.steps), state.past.length)
     if (steps === 0) return state
-    const target = state.past[state.past.length - steps]
+    const cut = state.past.length - steps
+    const undone = state.past.slice(cut)
+    // Zum Wiederholen brauchen wir den Zustand *nach* jedem Zug. Der steht
+    // im jeweils nächsten Eintrag – für den letzten ist es die Gegenwart.
+    const future = undone.map((entry, index) => ({
+      label: entry.label,
+      tone: entry.tone,
+      state: index + 1 < undone.length ? undone[index + 1].state : state.present,
+    }))
     return {
-      // Alte Meldungen nicht erneut einblenden.
-      present: { ...target.state, notifications: [] },
-      past: state.past.slice(0, state.past.length - steps),
+      present: quiet(state.past[cut].state),
+      past: state.past.slice(0, cut),
+      future: [...future, ...state.future],
+    }
+  }
+
+  if (action.type === 'redo') {
+    const steps = Math.min(Math.max(1, action.steps), state.future.length)
+    if (steps === 0) return state
+    const redone = state.future.slice(0, steps)
+    // Die wiederholten Züge wandern zurück in den Verlauf; ihr "davor" ist
+    // die Gegenwart beziehungsweise der Vorgänger im Stapel.
+    const past = redone.map((entry, index) => ({
+      label: entry.label,
+      tone: entry.tone,
+      state: index === 0 ? state.present : redone[index - 1].state,
+    }))
+    return {
+      present: quiet(redone[steps - 1].state),
+      past: [...state.past, ...past].slice(-MAX_HISTORY),
+      future: state.future.slice(steps),
     }
   }
 
@@ -111,17 +154,21 @@ export function historyReducer(state: HistoryState, action: HistoryAction): Hist
 
   // Ein frischer Block startet ohne Verlauf.
   if (action.type === 'newGame') {
-    return { present, past: [] }
+    return { present, past: [], future: [] }
   }
 
+  // Jeder echte Zug macht das Wiederholen hinfällig.
+  const future = KEEPS_FUTURE.includes(action.type) ? state.future : []
+
   if (!UNDOABLE.includes(action.type) || !changesBoard(state.present, present)) {
-    return { ...state, present }
+    return { ...state, present, future }
   }
 
   const entry: HistoryEntry = { state: state.present, ...describe(state.present, action) }
   return {
     present,
     past: [...state.past, entry].slice(-MAX_HISTORY),
+    future,
   }
 }
 
@@ -132,6 +179,7 @@ export const STORAGE_KEY = 'gsc-punkteblock-v1'
 interface StoredShape {
   present?: GameState
   past?: HistoryEntry[]
+  future?: HistoryEntry[]
   /** Ältere Stände speicherten den Spielzustand direkt. */
   player?: GameState['player']
   players?: GameState['player'][]
@@ -145,13 +193,16 @@ export function loadHistory(): HistoryState | null {
     const parsed = JSON.parse(raw) as StoredShape
     const present = parsed.present ?? (parsed.player || parsed.players ? parsed : null)
     if (!present) return null
-    return {
-      present: migrateState(present),
-      past: (parsed.past ?? []).map((entry) => ({
+    const entries = (list: HistoryEntry[] | undefined) =>
+      (list ?? []).map((entry) => ({
         label: entry.label,
         tone: entry.tone ?? 'neutral',
         state: migrateState(entry.state),
-      })),
+      }))
+    return {
+      present: migrateState(present),
+      past: entries(parsed.past),
+      future: entries(parsed.future),
     }
   } catch {
     return null
@@ -167,5 +218,5 @@ export function saveHistory(state: HistoryState): void {
 }
 
 export function createHistory(tableSize = 1): HistoryState {
-  return { present: createGame(tableSize), past: [] }
+  return { present: createGame(tableSize), past: [], future: [] }
 }

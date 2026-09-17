@@ -192,3 +192,76 @@ describe('Rundenbonus', () => {
     expect(state.present.claimedRounds).toEqual([1])
   })
 })
+
+describe('Wiederholen', () => {
+  const gelb = (col: number): HistoryAction => ({ type: 'toggleYellow', row: 0, col })
+
+  it('legt zurückgenommene Züge auf den Stapel', () => {
+    let state = run(gelb(0), gelb(1))
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(state.future.map((entry) => entry.label)).toEqual([
+      'Gelbes Kreuz · Reihe 1, Spalte 2',
+    ])
+    expect(active(state).yellow[0][1]).toBe(false)
+  })
+
+  it('stellt den Zug wieder her', () => {
+    let state = run(gelb(0), gelb(1))
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    state = historyReducer(state, { type: 'redo', steps: 1 })
+    expect(active(state).yellow[0][1]).toBe(true)
+    expect(state.future).toHaveLength(0)
+    expect(state.past.map((entry) => entry.label)).toEqual([
+      'Gelbes Kreuz · Reihe 1, Spalte 1',
+      'Gelbes Kreuz · Reihe 1, Spalte 2',
+    ])
+  })
+
+  it('sammelt mehrere Rücknahmen in der richtigen Reihenfolge', () => {
+    let state = run(gelb(0), gelb(1), gelb(2))
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(state.future.map((entry) => entry.label)).toEqual([
+      'Gelbes Kreuz · Reihe 1, Spalte 2',
+      'Gelbes Kreuz · Reihe 1, Spalte 3',
+    ])
+    // Wiederholen arbeitet den Stapel von vorn ab.
+    state = historyReducer(state, { type: 'redo', steps: 1 })
+    expect(active(state).yellow[0][1]).toBe(true)
+    expect(active(state).yellow[0][2]).toBe(false)
+    state = historyReducer(state, { type: 'redo', steps: 1 })
+    expect(active(state).yellow[0][2]).toBe(true)
+    expect(state.future).toHaveLength(0)
+  })
+
+  it('führt auch Boni wieder mit', () => {
+    // Gelbe Reihe 2 trägt automatisch eine orange 4 ein.
+    let state = run(...yellowRow2)
+    expect(active(state).orange[0]).toBe(4)
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(active(state).orange[0]).toBe(null)
+    state = historyReducer(state, { type: 'redo', steps: 1 })
+    expect(active(state).orange[0]).toBe(4)
+  })
+
+  it('verfällt, sobald ein anderer Zug kommt', () => {
+    let state = run(gelb(0), gelb(1))
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    expect(state.future).toHaveLength(1)
+    state = historyReducer(state, gelb(2))
+    expect(state.future).toHaveLength(0)
+  })
+
+  it('überlebt das Wegklicken einer Meldung', () => {
+    let state = run(...yellowRow2)
+    state = historyReducer(state, { type: 'undo', steps: 1 })
+    const toast = state.present.notifications[0]?.id ?? 'x'
+    state = historyReducer(state, { type: 'dismissNotification', id: toast })
+    expect(state.future).toHaveLength(1)
+  })
+
+  it('läuft bei leerem Stapel ins Leere', () => {
+    const fresh = createHistory(1)
+    expect(historyReducer(fresh, { type: 'redo', steps: 1 })).toBe(fresh)
+  })
+})
