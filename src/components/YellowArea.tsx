@@ -58,7 +58,7 @@ export function YellowArea({ player, points, mode, onMark }: Props) {
             </div>
           ))}
           <span
-            style={{ opacity: isYellowDiagonalComplete(player) ? 1 : 0.45 }}
+            className={`bonus-slot${isYellowDiagonalComplete(player) ? ' done' : ''}`}
             title="Bonus für die Diagonale 3–1–2–6"
           >
             <BonusChip bonus={YELLOW_DIAGONAL_BONUS} />

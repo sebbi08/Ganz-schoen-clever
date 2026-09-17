@@ -93,7 +93,7 @@ export default function App() {
       <BonusPanel player={player} onUse={(sourceId) => dispatch({ type: 'useBonus', sourceId })} />
 
       <div className="columns">
-        <main style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <main className="board">
           <div className="grids">
             <YellowArea
               player={player}

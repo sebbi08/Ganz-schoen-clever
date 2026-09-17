@@ -66,6 +66,10 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   einzeln **wiederholen** – solange kein neuer Zug dazwischenkommt, denn der
   leert den Stapel. Strg+Z nimmt zurück, Strg+Umschalt+Z wiederholt (bzw.
   Cmd).
+- **Auf dem Telefon bedienbar**: Unter 720 Pixel Breite brechen die elf
+  Felder von Grün, Orange und Lila auf zwei Reihen um, statt auf
+  Fingernagelgröße zu schrumpfen; Zahlentasten, Vorratskreise und die
+  Spielerzahl werden mit.
 - **Spielstand bleibt erhalten** (localStorage), auch nach dem Neuladen.
 
 ## Entwicklung

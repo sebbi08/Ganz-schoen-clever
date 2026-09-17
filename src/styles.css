@@ -86,6 +86,7 @@ button {
   }
 }
 
+.board,
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -580,6 +581,24 @@ button {
   border-radius: 3px;
   margin-right: 8px;
   vertical-align: middle;
+  background: var(--neutral);
+}
+
+.swatch.yellow { background: var(--yellow); }
+.swatch.blue { background: var(--blue); }
+.swatch.green { background: var(--green); }
+.swatch.orange { background: var(--orange); }
+.swatch.purple { background: var(--purple); }
+.swatch.fox { background: var(--fox); }
+
+/* Bonusfelder am Rand der Raster: blass, bis sie verdient sind. */
+.bonus-slot {
+  text-align: center;
+  opacity: 0.45;
+}
+
+.bonus-slot.done {
+  opacity: 1;
 }
 
 .score-table .note {
@@ -1078,4 +1097,37 @@ div.cell {
 
 .final-score .empty-hint {
   margin-bottom: 0;
+}
+
+/* ------------------------------------------------------- Schmale Schirme */
+
+/*
+ * Am Telefon standen die elf Felder von Grün, Orange und Lila nebeneinander
+ * und schrumpften auf knapp 26 Pixel – zu wenig zum Treffen. Sie brechen
+ * deshalb auf zwei Reihen um; dieselbe Reihenfolge, nur gefaltet.
+ */
+@media (max-width: 720px) {
+  .track {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    row-gap: 12px;
+  }
+
+  .value-bar-label {
+    flex: 1 0 100%;
+  }
+
+  .value-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .slot {
+    width: 26px;
+    height: 26px;
+  }
+
+  .size-btn {
+    width: 32px;
+    height: 32px;
+  }
 }

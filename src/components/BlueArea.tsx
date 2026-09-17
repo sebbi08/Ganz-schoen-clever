@@ -59,7 +59,7 @@ export function BlueArea({ player, points, mode, onMark }: Props) {
           {BLUE_COLUMN_BONUS.map((bonus, col) => {
             const done = player.blue.every((row, rowIndex) => isBlueGap(rowIndex, col) || row[col])
             return (
-              <div key={col} style={{ textAlign: 'center', opacity: done ? 1 : 0.45 }}>
+              <div key={col} className={`bonus-slot${done ? ' done' : ''}`}>
                 <BonusChip bonus={bonus} />
               </div>
             )
