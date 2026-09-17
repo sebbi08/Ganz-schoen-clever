@@ -44,9 +44,9 @@ type Described = Pick<HistoryEntry, 'label' | 'tone'>
 /** Beschreibung und Farbe eines Zuges, gebildet aus dem Zustand davor. */
 export function describe(state: GameState, action: Action): Described {
   switch (action.type) {
-    case 'toggleYellow':
+    case 'markYellow':
       return { label: `Gelbes Kreuz · Reihe ${action.row + 1}, Spalte ${action.col + 1}`, tone: 'yellow' }
-    case 'toggleBlue': {
+    case 'markBlue': {
       const value = BLUE_GRID[action.row][action.col]
       return { label: `Blaues Kreuz · ${value ?? ''}`, tone: 'blue' }
     }
@@ -83,8 +83,8 @@ export function describe(state: GameState, action: Action): Described {
  * Wegklicken einer Meldung sind keine Züge.
  */
 const UNDOABLE: Action['type'][] = [
-  'toggleYellow',
-  'toggleBlue',
+  'markYellow',
+  'markBlue',
   'setGreen',
   'setOrange',
   'setPurple',

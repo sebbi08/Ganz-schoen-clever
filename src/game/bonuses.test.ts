@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { resolveBonuses } from './bonuses'
 import { createGame, reducer } from './state'
 import type { Action } from './state'
 import type { GameState } from './types'
@@ -12,19 +13,19 @@ const active = (state: GameState) => state.player
 
 /** Gelbe Reihe 1 (3–6–5), Reihe 2 (2–1–5) und Reihe 3 (1–2–4) vervollständigen. */
 const yellowRow1: Action[] = [
-  { type: 'toggleYellow', row: 0, col: 0 },
-  { type: 'toggleYellow', row: 0, col: 1 },
-  { type: 'toggleYellow', row: 0, col: 2 },
+  { type: 'markYellow', row: 0, col: 0 },
+  { type: 'markYellow', row: 0, col: 1 },
+  { type: 'markYellow', row: 0, col: 2 },
 ]
 const yellowRow2: Action[] = [
-  { type: 'toggleYellow', row: 1, col: 0 },
-  { type: 'toggleYellow', row: 1, col: 1 },
-  { type: 'toggleYellow', row: 1, col: 3 },
+  { type: 'markYellow', row: 1, col: 0 },
+  { type: 'markYellow', row: 1, col: 1 },
+  { type: 'markYellow', row: 1, col: 3 },
 ]
 const yellowRow3: Action[] = [
-  { type: 'toggleYellow', row: 2, col: 0 },
-  { type: 'toggleYellow', row: 2, col: 2 },
-  { type: 'toggleYellow', row: 2, col: 3 },
+  { type: 'markYellow', row: 2, col: 0 },
+  { type: 'markYellow', row: 2, col: 2 },
+  { type: 'markYellow', row: 2, col: 3 },
 ]
 
 describe('Zahlenboni', () => {
@@ -90,7 +91,7 @@ describe('Kreuzboni mit freier Wahl', () => {
 
   it('werden durch einen Klick im geforderten Bereich erledigt', () => {
     let state = run(...yellowRow1)
-    state = reducer(state, { type: 'toggleBlue', row: 1, col: 0 }) // blaue 5
+    state = reducer(state, { type: 'markBlue', row: 1, col: 0 }) // blaue 5
     expect(active(state).blue[1][0]).toBe(true)
     expect(state.pendingChoices).toHaveLength(0)
     // Danach ist der Block wieder frei.
@@ -100,10 +101,10 @@ describe('Kreuzboni mit freier Wahl', () => {
 
   it('nehmen kein bereits angekreuztes Feld', () => {
     let state = run(...yellowRow1)
-    state = reducer(state, { type: 'toggleBlue', row: 1, col: 0 })
+    state = reducer(state, { type: 'markBlue', row: 1, col: 0 })
     // Dasselbe blaue Feld noch einmal: weder Auswahl erledigt noch Kreuz weg.
     const before = run(...yellowRow1)
-    const after = reducer(before, { type: 'toggleYellow', row: 0, col: 0 })
+    const after = reducer(before, { type: 'markYellow', row: 0, col: 0 })
     expect(after).toBe(before)
   })
 
@@ -129,29 +130,35 @@ describe('Vorrat und Füchse', () => {
   })
 })
 
-describe('Zurücknehmen', () => {
-  it('gibt einen Bonus wieder frei, wenn sein Auslöser verschwindet', () => {
-    let state = run(...yellowRow2)
-    expect(active(state).resolvedBonuses).toContain('yellow-row-1')
-    state = reducer(state, { type: 'toggleYellow', row: 1, col: 0 })
-    expect(active(state).resolvedBonuses).not.toContain('yellow-row-1')
-    // Erneut vervollständigen löst den Bonus wieder aus.
-    state = reducer(state, { type: 'toggleYellow', row: 1, col: 0 })
-    expect(active(state).orange[1]).toBe(4)
+describe('Gesetzt ist gesetzt', () => {
+  it('nimmt ein Kreuz nicht wieder zurück', () => {
+    const state = run(...yellowRow2)
+    expect(active(state).yellow[1][0]).toBe(true)
+    // Derselbe Klick noch einmal: der Zustand bleibt, wie er ist.
+    const again = reducer(state, { type: 'markYellow', row: 1, col: 0 })
+    expect(again).toBe(state)
+    expect(active(again).yellow[1][0]).toBe(true)
   })
 
-  it('lässt sich erst nach dem Verfallen zurücknehmen', () => {
+  it('bleibt auch nach dem Verfallen einer Auswahl stehen', () => {
     let state = run(...yellowRow1)
     expect(state.pendingChoices).toHaveLength(1)
-    // Solange die Auswahl offen ist, ist auch der Auslöser gesperrt.
-    state = reducer(state, { type: 'toggleYellow', row: 0, col: 0 })
-    expect(active(state).yellow[0][0]).toBe(true)
-    expect(state.pendingChoices).toHaveLength(1)
-
     state = reducer(state, { type: 'skipChoice' })
-    state = reducer(state, { type: 'toggleYellow', row: 0, col: 0 })
-    expect(active(state).yellow[0][0]).toBe(false)
-    expect(active(state).resolvedBonuses).not.toContain('yellow-row-0')
+    state = reducer(state, { type: 'markYellow', row: 0, col: 0 })
+    expect(active(state).yellow[0][0]).toBe(true)
+    expect(active(state).resolvedBonuses).toContain('yellow-row-0')
+  })
+
+  it('gibt einen Bonus wieder frei, wenn sein Auslöser verschwindet', () => {
+    // Genau das macht der Verlauf beim Zurücknehmen: Er setzt den Block auf
+    // einen früheren Stand, der Bonus muss dann wieder als offen gelten.
+    const state = run(...yellowRow2)
+    expect(active(state).resolvedBonuses).toContain('yellow-row-1')
+    const yellow = active(state).yellow.map((row, r) =>
+      row.map((cell, c) => (r === 1 && c === 0 ? false : cell)),
+    )
+    const rolled = resolveBonuses({ ...state, player: { ...active(state), yellow } })
+    expect(rolled.player.resolvedBonuses).not.toContain('yellow-row-1')
   })
 })
 
@@ -174,8 +181,8 @@ describe('Rundenbonus "Kreuz oder 6"', () => {
 
   it('nimmt ein Kreuz in jedem Farbbereich an', () => {
     for (const [name, action] of [
-      ['gelb', { type: 'toggleYellow', row: 0, col: 0 }],
-      ['blau', { type: 'toggleBlue', row: 1, col: 0 }],
+      ['gelb', { type: 'markYellow', row: 0, col: 0 }],
+      ['blau', { type: 'markBlue', row: 1, col: 0 }],
       ['grün', { type: 'setGreen', count: 1 }],
     ] as const) {
       const state = reducer(round4(), action)

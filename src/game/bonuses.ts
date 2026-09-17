@@ -189,11 +189,11 @@ export function satisfiesChoice(
   const any = choice.bonus === 'anyCrossOr6'
 
   switch (action.type) {
-    case 'toggleYellow':
+    case 'markYellow':
       return (
         (any || choice.bonus === 'yellow') && !player.yellow[action.row][action.col]
       )
-    case 'toggleBlue':
+    case 'markBlue':
       return (
         (any || choice.bonus === 'blue') &&
         !isBlueGap(action.row, action.col) &&

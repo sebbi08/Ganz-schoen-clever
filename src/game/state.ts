@@ -1,6 +1,6 @@
 import { ROUNDS, roundsFor } from './layout'
 import { resolveBonuses, satisfiesChoice } from './bonuses'
-import { createPlayer, earnedBonuses } from './scoring'
+import { createPlayer, earnedBonuses, isBlueGap } from './scoring'
 import type { GameState, PlayerState } from './types'
 
 let idCounter = 0
@@ -47,8 +47,8 @@ function startRound(state: GameState): GameState {
 }
 
 export type Action =
-  | { type: 'toggleYellow'; row: number; col: number }
-  | { type: 'toggleBlue'; row: number; col: number }
+  | { type: 'markYellow'; row: number; col: number }
+  | { type: 'markBlue'; row: number; col: number }
   | { type: 'setGreen'; count: number }
   | { type: 'setOrange'; index: number; value: number | null }
   | { type: 'setPurple'; index: number; value: number | null }
@@ -92,13 +92,16 @@ export function reducer(state: GameState, action: Action): GameState {
 
 function apply(state: GameState, action: Action): GameState {
   switch (action.type) {
-    case 'toggleYellow':
-    case 'toggleBlue': {
-      const area = action.type === 'toggleYellow' ? 'yellow' : 'blue'
+    case 'markYellow':
+    case 'markBlue': {
+      const area = action.type === 'markYellow' ? 'yellow' : 'blue'
+      // Gesetzt ist gesetzt: ein Kreuz verschwindet nur über den Verlauf.
+      if (state.player[area][action.row][action.col]) return state
+      if (area === 'blue' && isBlueGap(action.row, action.col)) return state
       return updatePlayer(state, (player) => ({
         ...player,
         [area]: player[area].map((row, r) =>
-          r === action.row ? row.map((cell, c) => (c === action.col ? !cell : cell)) : row,
+          r === action.row ? row.map((cell, c) => (c === action.col ? true : cell)) : row,
         ),
       }))
     }

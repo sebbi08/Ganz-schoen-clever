@@ -13,10 +13,10 @@ interface Props {
   player: PlayerState
   points: number
   mode: AreaMode
-  onToggle: (row: number, col: number) => void
+  onMark: (row: number, col: number) => void
 }
 
-export function YellowArea({ player, points, mode, onToggle }: Props) {
+export function YellowArea({ player, points, mode, onMark }: Props) {
   const columnDone = YELLOW_COLUMN_POINTS.map((_, col) => player.yellow.every((row) => row[col]))
 
   return (
@@ -39,7 +39,7 @@ export function YellowArea({ player, points, mode, onToggle }: Props) {
                   key={colIndex}
                   className={`cell${marked ? ' marked' : ''}${locked ? ' locked' : ''}`}
                   disabled={disabled}
-                  onClick={() => onToggle(rowIndex, colIndex)}
+                  onClick={() => onMark(rowIndex, colIndex)}
                   aria-label={`Gelb Reihe ${rowIndex + 1} Spalte ${colIndex + 1}`}
                   aria-pressed={marked}
                 >

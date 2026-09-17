@@ -81,13 +81,13 @@ export default function App() {
               player={player}
               points={score.yellow}
               mode={areaMode(choice, 'yellow')}
-              onToggle={(row, col) => dispatch({ type: 'toggleYellow', row, col })}
+              onMark={(row, col) => dispatch({ type: 'markYellow', row, col })}
             />
             <BlueArea
               player={player}
               points={score.blue}
               mode={areaMode(choice, 'blue')}
-              onToggle={(row, col) => dispatch({ type: 'toggleBlue', row, col })}
+              onMark={(row, col) => dispatch({ type: 'markBlue', row, col })}
             />
           </div>
 

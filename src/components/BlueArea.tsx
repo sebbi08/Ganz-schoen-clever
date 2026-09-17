@@ -8,10 +8,10 @@ interface Props {
   player: PlayerState
   points: number
   mode: AreaMode
-  onToggle: (row: number, col: number) => void
+  onMark: (row: number, col: number) => void
 }
 
-export function BlueArea({ player, points, mode, onToggle }: Props) {
+export function BlueArea({ player, points, mode, onMark }: Props) {
   const count = blueMarkCount(player)
 
   return (
@@ -43,7 +43,7 @@ export function BlueArea({ player, points, mode, onToggle }: Props) {
                   key={colIndex}
                   className={`cell${marked ? ' marked' : ''}`}
                   disabled={disabled}
-                  onClick={() => onToggle(rowIndex, colIndex)}
+                  onClick={() => onMark(rowIndex, colIndex)}
                   aria-label={`Blau ${value}`}
                   aria-pressed={marked}
                 >
