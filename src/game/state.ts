@@ -23,6 +23,8 @@ export function createGame(tableSize = 1): GameState {
       tableSize: clampTableSize(tableSize),
       claimedRounds: [],
       finished: false,
+      roundEntries: 0,
+      roundExtraDice: 0,
       pendingChoices: [],
       bonusQueue: [],
       notifications: [],
@@ -72,6 +74,36 @@ function updatePlayer(state: GameState, update: (player: PlayerState) => PlayerS
   return { ...state, player: update(state.player) }
 }
 
+/** Züge, hinter denen ein Würfel steckt. */
+const DICE_ENTRIES: Action['type'][] = [
+  'markYellow',
+  'markBlue',
+  'setGreen',
+  'setOrange',
+  'setPurple',
+]
+
+/**
+ * Führt Buch über die Würfel dieser Runde. Gezählt wird nur, was der Spieler
+ * selbst einträgt: Felder, die ein Bonus schreibt, kommen nicht von einem
+ * Würfel, und ein Kreuz, das eine Zwangsauswahl erfüllt, ebenso wenig – das
+ * läuft in einem anderen Zweig des Reducers. Ein eingelöster Zusatzwürfel
+ * erlaubt dagegen einen Eintrag mehr.
+ */
+function countEntry(before: GameState, after: GameState, action: Action): GameState {
+  if (after === before) return after
+  if (DICE_ENTRIES.includes(action.type)) {
+    return { ...after, roundEntries: after.roundEntries + 1 }
+  }
+  if (action.type === 'useBonus') {
+    const bonus = earnedBonuses(before.player).find(
+      (entry) => entry.sourceId === action.sourceId,
+    )?.bonus
+    if (bonus === 'plus1') return { ...after, roundExtraDice: after.roundExtraDice + 1 }
+  }
+  return after
+}
+
 /** Aktionen, die auch bei offener Zwangsauswahl durchgehen. */
 const ALWAYS_ALLOWED: Action['type'][] = ['skipChoice', 'dismissNotification', 'newGame', 'replace']
 
@@ -85,7 +117,7 @@ export function reducer(state: GameState, action: Action): GameState {
     return resolveBonuses(apply(state, action))
   }
 
-  if (!choice) return resolveBonuses(apply(state, action))
+  if (!choice) return countEntry(state, resolveBonuses(apply(state, action)), action)
 
   // Der Zug erfüllt die Auswahl: ausführen und den Bonus abhaken.
   if (satisfiesChoice(state, choice, action)) {
@@ -147,8 +179,9 @@ function apply(state: GameState, action: Action): GameState {
     case 'completeRound': {
       const total = roundsFor(state.tableSize)
       if (state.round >= total) return state
-      // Die neue Runde beginnt, damit kommt ihr Bonus dazu.
-      return startRound({ ...state, round: state.round + 1 })
+      // Die neue Runde beginnt, damit kommt ihr Bonus dazu. Die Würfelzählung
+      // fängt von vorn an.
+      return startRound({ ...state, round: state.round + 1, roundEntries: 0, roundExtraDice: 0 })
     }
 
     case 'finishGame':
@@ -220,6 +253,8 @@ export function migrateState(parsed: LegacyGameState): GameState {
     tableSize: clampTableSize(parsed.tableSize ?? parsed.players?.length ?? 1),
     claimedRounds: parsed.claimedRounds ?? [],
     finished: parsed.finished ?? false,
+    roundEntries: parsed.roundEntries ?? 0,
+    roundExtraDice: parsed.roundExtraDice ?? 0,
     pendingChoices: parsed.pendingChoices ?? [],
     bonusQueue: parsed.bonusQueue ?? [],
     notifications: [],

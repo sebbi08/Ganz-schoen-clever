@@ -187,6 +187,17 @@ export const ROUNDS: readonly RoundInfo[] = [
   { maxPlayers: 2 },
 ]
 
+/**
+ * So viele Würfel trägt ein Spieler in einer Runde ein: drei als aktiver
+ * Spieler, dazu einen pro Zug der Mitspieler. Am Einzelblock übernimmt man
+ * beide Rollen und kommt damit ebenfalls auf vier.
+ *
+ * Eingelöste Zusatzwürfel kommen obendrauf, die zählt der Spielzustand mit.
+ */
+export function entriesPerRound(playerCount: number): number {
+  return playerCount === 1 ? 4 : 3 + (playerCount - 1)
+}
+
 /** Runden 1–4 immer, Runde 5 bis 3 Spieler, Runde 6 bis 2 Spieler. */
 export function roundsFor(playerCount: number): number {
   return ROUNDS.filter((round) => playerCount <= round.maxPlayers).length

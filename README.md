@@ -48,6 +48,14 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   Jede angefangene Runde bekommt ihren Haken, auch die ohne Bonus. Die
   Rundenzahl richtet sich nach der Spielerzahl (1–2 Spieler: 6 Runden,
   3 Spieler: 5, 4 Spieler: 4); Boni gibt es in den Runden 1–4.
+
+  Die Leiste bleibt immer im Bild: Beim Scrollen klebt sie oben am Rand und
+  schrumpft auf eine Zeile mit Rundenstand und Knopf. Und sobald so viele
+  Würfel eingetragen sind, wie in eine Runde gehören, fängt der Knopf an zu
+  blinken – das ist der häufigste Fehler am Tisch: die nächste Runde
+  vergessen. Gezählt werden drei Würfel als aktiver Spieler plus einer je
+  Mitspielerzug (am Einzelblock ebenfalls vier), dazu jeder eingelöste
+  Zusatzwürfel. Felder, die ein Bonus schreibt, zählen nicht mit.
 - **Endwertung**: In der letzten Runde beendet derselbe Knopf das Spiel und
   klappt die Abrechnung auf – Gesamtpunkte, die fünf Bereiche und die
   Füchse mit ihrem Wert. Am Einzelblock steht die Stufe dazu, die der Block
