@@ -8,7 +8,6 @@ interface Props {
   /** Wie viele am Tisch sitzen – bestimmt allein die Rundenzahl. */
   tableSize: number
   claimedRounds: number[]
-  onSetTableSize: (size: number) => void
   onComplete: () => void
   onFinish: () => void
 }
@@ -18,7 +17,6 @@ export function RoundBar({
   finished,
   tableSize,
   claimedRounds,
-  onSetTableSize,
   onComplete,
   onFinish,
 }: Props) {
@@ -32,29 +30,19 @@ export function RoundBar({
       <h2>
         Runde {round} von {total}
         <span className="table-size">
-          Am Tisch:
-          {[1, 2, 3, 4].map((size) => (
-            <button
-              key={size}
-              className={`size-btn${size === tableSize ? ' active' : ''}`}
-              onClick={() => onSetTableSize(size)}
-              title={`${size} Spieler → ${roundsFor(size)} Runden`}
-            >
-              {size}
-            </button>
-          ))}
+          {tableSize} {tableSize === 1 ? 'Spieler' : 'Spieler am Tisch'}
         </span>
       </h2>
       <div className="rounds">
         {ROUNDS.slice(0, total).map((info, index) => {
           const number = index + 1
+          // Angefangene Runden bekommen ihren Haken – auch die ohne Bonus.
+          const done = number <= round
           return (
             <div
               key={number}
-              className={`round${number === round ? ' current' : ''}${
-                claimedRounds.includes(number) ? ' claimed' : ''
-              }`}
-              title={claimedRounds.includes(number) ? 'Bonus schon erhalten' : undefined}
+              className={`round${number === round ? ' current' : ''}${done ? ' done' : ''}`}
+              title={claimedRounds.includes(number) ? 'Bonus erhalten' : undefined}
             >
               <span className="no">{number}</span>
               {info.bonus ? (
