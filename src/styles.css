@@ -725,6 +725,7 @@ button {
 
 .choice-banner.yellow { border-color: var(--yellow); }
 .choice-banner.blue { border-color: var(--blue); }
+.choice-banner.neutral { border-color: var(--muted); }
 
 .choice-dot {
   width: 12px;
@@ -736,6 +737,7 @@ button {
 
 .choice-banner.yellow .choice-dot { background: var(--yellow); }
 .choice-banner.blue .choice-dot { background: var(--blue); }
+.choice-banner.neutral .choice-dot { background: var(--muted); }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
@@ -771,6 +773,14 @@ button {
 
 .area.picking.yellow { color: var(--yellow); }
 .area.picking.blue { color: var(--blue); }
+.area.picking.green { color: var(--green); }
+.area.picking.orange { color: var(--orange); }
+.area.picking.purple { color: var(--purple); }
+
+/* Bei "Kreuz oder 6" ist in Orange und Lila nur die 6 erlaubt. */
+.area.picking .value-btn:not(:disabled) {
+  box-shadow: 0 0 0 2px currentColor;
+}
 
 /* Wählbare Felder bekommen einen Ring statt zu blinken. */
 .area.picking .cell:not(:disabled) {
@@ -825,6 +835,13 @@ button {
   margin-bottom: 8px;
 }
 
+/* Zweiter Klick bestätigt – der erste fragt nur nach. */
+.undo-btn.armed {
+  border-color: var(--fox);
+  color: var(--fox);
+  background: color-mix(in srgb, var(--fox) 14%, var(--panel-2));
+}
+
 .history-list {
   list-style: none;
   margin: 0;
@@ -835,6 +852,7 @@ button {
 }
 
 .history-row {
+  list-style: none;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -846,12 +864,6 @@ button {
   border-radius: 8px;
   padding: 5px 8px;
   font-size: 12px;
-}
-
-.history-row:hover {
-  border-color: var(--muted);
-  border-left-color: var(--tone, var(--muted));
-  background: color-mix(in srgb, var(--tone, var(--muted)) 12%, var(--panel-2));
 }
 
 /* Ein Punkt in der Bereichsfarbe, damit die Zeile auch ohne Rand lesbar ist. */
@@ -870,13 +882,6 @@ button {
 .history-row.purple { --tone: var(--purple); }
 .history-row.fox { --tone: var(--fox); }
 .history-row.neutral { --tone: var(--muted); }
-
-/* Beim Überfahren wird sichtbar, was mit zurückgenommen würde. */
-.history-list li:hover ~ li .history-row {
-  border-color: var(--fox);
-  border-left-color: var(--fox);
-  color: var(--fox);
-}
 
 .history-row .label {
   flex: 1;

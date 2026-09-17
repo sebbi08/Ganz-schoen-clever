@@ -101,11 +101,10 @@ describe('Kreuzboni mit freier Wahl', () => {
   it('nehmen kein bereits angekreuztes Feld', () => {
     let state = run(...yellowRow1)
     state = reducer(state, { type: 'toggleBlue', row: 1, col: 0 })
-    state = run(...yellowRow1, ...yellowRow3) // erneut ein blaues Kreuz erzwingen
-    const before = state
-    // Ein gesetztes Kreuz erneut anzutippen darf die Auswahl nicht erledigen.
+    // Dasselbe blaue Feld noch einmal: weder Auswahl erledigt noch Kreuz weg.
+    const before = run(...yellowRow1)
     const after = reducer(before, { type: 'toggleYellow', row: 0, col: 0 })
-    expect(after.pendingChoices).toHaveLength(before.pendingChoices.length)
+    expect(after).toBe(before)
   })
 
   it('lassen sich verfallen', () => {
@@ -118,7 +117,7 @@ describe('Kreuzboni mit freier Wahl', () => {
 })
 
 describe('Vorrat und Füchse', () => {
-  it('legt Wiederholungswurf und +1 in die Liste', () => {
+  it('legt Wiederholungswurf und +1 in den Vorrat', () => {
     const state = run({ type: 'setGreen', count: 4 }) // grünes Feld 4 → +1
     expect(openBonuses(active(state)).map((entry) => entry.bonus)).toContain('plus1')
   })
@@ -153,5 +152,71 @@ describe('Zurücknehmen', () => {
     state = reducer(state, { type: 'toggleYellow', row: 0, col: 0 })
     expect(active(state).yellow[0][0]).toBe(false)
     expect(active(state).resolvedBonuses).not.toContain('yellow-row-0')
+  })
+})
+
+describe('Rundenbonus "Kreuz oder 6"', () => {
+  /** Bis zum Beginn von Runde 4 durchschalten. */
+  function round4(): GameState {
+    let state = createGame(1)
+    for (let index = 0; index < 3; index++) {
+      state = reducer(state, { type: 'completeRound' })
+    }
+    return state
+  }
+
+  it('verlangt zu Beginn von Runde 4 eine Auswahl', () => {
+    const state = round4()
+    expect(state.round).toBe(4)
+    expect(state.pendingChoices).toHaveLength(1)
+    expect(state.pendingChoices[0].bonus).toBe('anyCrossOr6')
+  })
+
+  it('nimmt ein Kreuz in jedem Farbbereich an', () => {
+    for (const [name, action] of [
+      ['gelb', { type: 'toggleYellow', row: 0, col: 0 }],
+      ['blau', { type: 'toggleBlue', row: 1, col: 0 }],
+      ['grün', { type: 'setGreen', count: 1 }],
+    ] as const) {
+      const state = reducer(round4(), action)
+      expect(state.pendingChoices, name).toHaveLength(0)
+    }
+  })
+
+  it('nimmt in Orange und Lila nur eine 6', () => {
+    const fuenf = reducer(round4(), { type: 'setOrange', index: 0, value: 5 })
+    expect(fuenf.pendingChoices).toHaveLength(1)
+    expect(fuenf.player.orange[0]).toBe(null)
+
+    const sechs = reducer(round4(), { type: 'setOrange', index: 0, value: 6 })
+    expect(sechs.pendingChoices).toHaveLength(0)
+    expect(sechs.player.orange[0]).toBe(6)
+
+    const lila = reducer(round4(), { type: 'setPurple', index: 0, value: 6 })
+    expect(lila.pendingChoices).toHaveLength(0)
+    expect(lila.player.purple[0]).toBe(6)
+  })
+
+  it('sperrt alles andere, bis die Auswahl steht', () => {
+    const state = round4()
+    // Ein Feld, das nicht das nächste freie ist, zählt nicht.
+    expect(reducer(state, { type: 'setOrange', index: 3, value: 6 })).toBe(state)
+    expect(reducer(state, { type: 'setGreen', count: 3 })).toBe(state)
+  })
+})
+
+describe('Vorrat einlösen', () => {
+  it('geht nur in eine Richtung', () => {
+    let state = createGame(1) // Rundenbonus 1 liegt im Vorrat
+    const [bonus] = openBonuses(state.player)
+    expect(bonus.bonus).toBe('reroll')
+
+    state = reducer(state, { type: 'useBonus', sourceId: bonus.sourceId })
+    expect(openBonuses(state.player)).toHaveLength(0)
+
+    // Erneutes Drücken aktiviert ihn nicht wieder.
+    const after = reducer(state, { type: 'useBonus', sourceId: bonus.sourceId })
+    expect(after).toBe(state)
+    expect(openBonuses(after.player)).toHaveLength(0)
   })
 })

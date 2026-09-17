@@ -1,17 +1,19 @@
 import { GREEN_POINTS, GREEN_STEPS } from '../game/layout'
+import type { AreaMode } from '../game/bonuses'
 import type { PlayerState } from '../game/types'
 import { BonusChip } from './BonusChip'
 
 interface Props {
   player: PlayerState
   points: number
-  locked: boolean
+  mode: AreaMode
   onSet: (count: number) => void
 }
 
-export function GreenRow({ player, points, locked, onSet }: Props) {
+export function GreenRow({ player, points, mode, onSet }: Props) {
+  const locked = mode === 'locked'
   return (
-    <section className={`area green${locked ? ' locked' : ''}`}>
+    <section className={`area green${locked ? ' locked' : ''}${mode === 'pick' ? ' picking' : ''}`}>
       <div className="area-head">
         <span>Grün – von links nach rechts ankreuzen</span>
         <span className="points">{points}</span>

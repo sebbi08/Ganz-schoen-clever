@@ -61,7 +61,7 @@ export function RoundBar({
             'Spiel zu Ende'
           ) : (
             <>
-              Runde {round} abschließen →
+              Runde {round + 1} beginnen →
               {nextBonus && (
                 <>
                   {' '}

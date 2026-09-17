@@ -187,7 +187,7 @@ describe('offene Boni', () => {
     expect(openBonuses(p)).toHaveLength(0)
   })
 
-  it('nimmt manuell ergänzte Boni auf', () => {
+  it('nimmt gutgeschriebene Rundenboni auf', () => {
     const p = player()
     p.manualBonuses = [{ id: 'm1', bonus: 'plus1', origin: 'Rundenbonus 2' }]
     expect(openBonuses(p)).toHaveLength(1)

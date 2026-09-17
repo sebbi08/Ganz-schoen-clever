@@ -24,15 +24,20 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
     Zwangsauswahl gestellt: Der Block ist gesperrt, nur der geforderte
     Bereich reagiert, und erst das gesetzte Kreuz gibt ihn wieder frei.
     Wer sich verklickt hat, lässt den Bonus über den Banner verfallen.
+  - *Beliebiges Kreuz oder eine 6* – der Bonus zu Beginn von Runde 4 – ist
+    ebenso eine Zwangsauswahl, nur mit mehr Zielen: jedes freie gelbe oder
+    blaue Feld, das nächste grüne, oder eine 6 in Orange oder Lila.
   - Ketten lösen sich von selbst auf: Schreibt ein Bonus in ein Feld, das
     seinerseits einen Bonus trägt, wird auch der sofort abgearbeitet.
-- **Vorrat wie auf dem Block**: Wiederholungswürfe und +1 haben je eine
-  Leiste mit acht Kreisen. Jeder erhaltene Bonus füllt einen Kreis, ein
-  Klick hakt ihn beim Einlösen ab; rechts steht, wie viele noch offen sind.
-  Füchse zählen automatisch mit.
+- **Vorrat wie auf dem Block**, direkt unter der Rundenleiste:
+  Wiederholungswürfe und +1 haben je eine Leiste mit acht Kreisen. Jeder
+  erhaltene Bonus füllt einen Kreis, ein Klick hakt ihn beim Einlösen ab –
+  und das endgültig, zurück geht es nur über den Verlauf. Eingelöste rutschen
+  nach vorn, damit die offenen zusammenhängend am Ende stehen; rechts steht
+  ihre Zahl. Füchse zählen automatisch mit.
 - **Rundenleiste**: Der Rundenbonus wird zu *Beginn* der Runde
   gutgeschrieben – man startet also schon mit einem Wiederholungswurf aus
-  Runde 1. „Runde N abschließen" schaltet genau eine Runde weiter und bringt
+  Runde 1. Der Knopf schaltet genau eine Runde weiter und bringt
   deren Bonus mit; überspringen geht nicht, zurück nur über den Verlauf.
   Erledigte Runden bekommen einen Haken, nach der letzten ist der Knopf
   gesperrt. Die Rundenzahl richtet sich nach der Spielerzahl (1–2 Spieler:
@@ -42,10 +47,11 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
   weil sie die Rundenzahl bestimmt.
 - **Gesetzt ist gesetzt**: Ein Kreuz oder eine Zahl lässt sich nicht einzeln
   zurücknehmen – wie auf Papier. Korrigiert wird über den **Verlauf**: Er
-  führt die letzten 30 Züge – jeder in der Farbe seines Bereichs – und nimmt
-  auf Klick den gewählten Zug samt allem danach zurück, inklusive der Boni,
-  die dabei ausgelöst wurden. Strg+Z (bzw. Cmd+Z) nimmt den letzten Zug
-  zurück.
+  listet die letzten 30 Züge, jeden in der Farbe seines Bereichs. Zurück
+  nehmen lässt sich der jeweils letzte, und das erst auf den zweiten Klick –
+  der erste fragt nach und verfällt nach vier Sekunden von selbst. Mit dem
+  Zug verschwinden auch die Boni, die er ausgelöst hat. Strg+Z (bzw. Cmd+Z)
+  geht ebenfalls.
 - **Spielstand bleibt erhalten** (localStorage), auch nach dem Neuladen.
 
 ## Entwicklung

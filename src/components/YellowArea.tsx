@@ -5,10 +5,9 @@ import {
   YELLOW_ROW_BONUS,
 } from '../game/layout'
 import { isYellowDiagonalComplete, isYellowLocked } from '../game/scoring'
+import type { AreaMode } from '../game/bonuses'
 import type { PlayerState } from '../game/types'
 import { BonusChip } from './BonusChip'
-
-export type AreaMode = 'normal' | 'pick' | 'locked'
 
 interface Props {
   player: PlayerState

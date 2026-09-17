@@ -21,7 +21,7 @@ export interface PlayerState {
   resolvedBonuses: string[]
   /** Eingelöste Vorratsboni: Wiederholungswurf, +1 (sourceId). */
   usedBonuses: string[]
-  /** Von Hand ergänzte Boni, z. B. Rundenboni. */
+  /** Zusätzlich gutgeschriebene Boni – heute sind das die Rundenboni. */
   manualBonuses: ManualBonus[]
 }
 

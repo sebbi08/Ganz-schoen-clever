@@ -32,9 +32,8 @@ export interface BonusInfo {
    * fox    = wird automatisch gezählt
    * action = Vorrat, wird später eingelöst (Wiederholungswurf, +1)
    * mark   = Farbbonus, wird sofort verarbeitet
-   * manual = mehrdeutig, bleibt zum Abhaken in der Liste
    */
-  kind: 'fox' | 'action' | 'mark' | 'manual'
+  kind: 'fox' | 'action' | 'mark'
   /** Farbgebung des Chips. */
   color: 'neutral' | 'fox' | 'yellow' | 'blue' | 'green' | 'orange' | 'purple'
 }
@@ -53,7 +52,7 @@ export const BONUSES: Record<BonusId, BonusInfo> = {
   anyCrossOr6: {
     label: 'Beliebiges Kreuz oder eine 6',
     short: '✗/6',
-    kind: 'manual',
+    kind: 'mark',
     color: 'neutral',
   },
 }
@@ -199,8 +198,11 @@ export const SUPPLY_SLOTS = 8
 /** Boni mit eigener Vorratsleiste. */
 export const SUPPLY_BONUSES = ['reroll', 'plus1'] as const
 
-/** Farbboni, die eine freie Wahl im Raster verlangen. */
-export type PickBonus = 'yellow' | 'blue'
+/** Boni, die eine freie Wahl auf dem Block verlangen. */
+export type PickBonus = 'yellow' | 'blue' | 'anyCrossOr6'
+
+/** Die fünf Farbbereiche des Blocks. */
+export type Area = 'yellow' | 'blue' | 'green' | 'orange' | 'purple'
 
 /** Zahlenboni: Wert, der direkt in die jeweilige Reihe geschrieben wird. */
 export const NUMBER_BONUS: Partial<Record<BonusId, { row: 'orange' | 'purple'; value: number }>> = {

@@ -1,6 +1,5 @@
-import { BONUSES, ROUNDS, roundsFor } from './layout'
-import type { BonusId } from './layout'
-import { resolveBonuses } from './bonuses'
+import { ROUNDS, roundsFor } from './layout'
+import { resolveBonuses, satisfiesChoice } from './bonuses'
 import { createPlayer, earnedBonuses } from './scoring'
 import type { GameState, PlayerState } from './types'
 
@@ -12,14 +11,16 @@ function nextId(prefix: string): string {
 
 export function createGame(tableSize = 1): GameState {
   // Runde 1 läuft schon, ihr Bonus gehört also sofort gutgeschrieben.
-  return startRound({
-    player: createPlayer(),
-    round: 1,
-    tableSize,
-    claimedRounds: [],
-    pendingChoices: [],
-    notifications: [],
-  })
+  return resolveBonuses(
+    startRound({
+      player: createPlayer(),
+      round: 1,
+      tableSize,
+      claimedRounds: [],
+      pendingChoices: [],
+      notifications: [],
+    }),
+  )
 }
 
 /**
@@ -30,25 +31,18 @@ export function createGame(tableSize = 1): GameState {
 function startRound(state: GameState): GameState {
   const info = ROUNDS[state.round - 1]
   if (!info?.bonus || state.claimedRounds.includes(state.round)) return state
-  const id = nextId('round')
-  const origin = `Rundenbonus ${state.round}`
+  // Der Bonus läuft durch die normale Verarbeitung: Meldung, Vorrat oder –
+  // wie in Runde 4 – eine Zwangsauswahl.
   return {
     ...state,
     claimedRounds: [...state.claimedRounds, state.round],
     player: {
       ...state.player,
-      manualBonuses: [...state.player.manualBonuses, { id, bonus: info.bonus, origin }],
-      // Gleich als verarbeitet markieren, sonst meldet er sich doppelt.
-      resolvedBonuses: [...state.player.resolvedBonuses, id],
+      manualBonuses: [
+        ...state.player.manualBonuses,
+        { id: nextId('round'), bonus: info.bonus, origin: `Rundenbonus ${state.round}` },
+      ],
     },
-    notifications: [
-      ...state.notifications,
-      {
-        id: nextId('n'),
-        text: `${origin}: ${BONUSES[info.bonus].label}`,
-        tone: BONUSES[info.bonus].color,
-      },
-    ],
   }
 }
 
@@ -58,9 +52,7 @@ export type Action =
   | { type: 'setGreen'; count: number }
   | { type: 'setOrange'; index: number; value: number | null }
   | { type: 'setPurple'; index: number; value: number | null }
-  | { type: 'toggleBonusUsed'; sourceId: string }
-  | { type: 'addManualBonus'; bonus: BonusId; origin: string }
-  | { type: 'removeManualBonus'; id: string }
+  | { type: 'useBonus'; sourceId: string }
   | { type: 'setTableSize'; size: number }
   | { type: 'completeRound' }
   | { type: 'skipChoice' }
@@ -75,10 +67,8 @@ function updatePlayer(
   return { ...state, player: update(state.player) }
 }
 
-/** Aktionen, die auch bei offener Zwangsauswahl erlaubt bleiben. */
+/** Aktionen, die auch bei offener Zwangsauswahl durchgehen. */
 const ALWAYS_ALLOWED: Action['type'][] = [
-  'toggleYellow',
-  'toggleBlue',
   'skipChoice',
   'dismissNotification',
   'newGame',
@@ -86,34 +76,25 @@ const ALWAYS_ALLOWED: Action['type'][] = [
 ]
 
 export function reducer(state: GameState, action: Action): GameState {
-  // Solange ein Farbbonus auf seine Auswahl wartet, ist der Rest gesperrt.
-  if (state.pendingChoices.length > 0 && !ALWAYS_ALLOWED.includes(action.type)) {
-    return state
+  const choice = state.pendingChoices[0]
+  if (!choice) return resolveBonuses(apply(state, action))
+
+  // Der Zug erfüllt die Auswahl: ausführen und den Bonus abhaken.
+  if (satisfiesChoice(state, choice, action)) {
+    const next = apply(state, action)
+    return resolveBonuses({ ...next, pendingChoices: next.pendingChoices.slice(1) })
   }
+
+  // Sonst ist der Block gesperrt, bis die Auswahl steht.
+  if (!ALWAYS_ALLOWED.includes(action.type)) return state
   return resolveBonuses(apply(state, action))
 }
 
 function apply(state: GameState, action: Action): GameState {
-  const choice = state.pendingChoices[0]
-
   switch (action.type) {
     case 'toggleYellow':
     case 'toggleBlue': {
       const area = action.type === 'toggleYellow' ? 'yellow' : 'blue'
-      const marked = state.player[area][action.row][action.col]
-
-      if (choice) {
-        // Erzwungene Auswahl: nur ein freies Feld im geforderten Bereich.
-        if (choice.bonus !== area || marked) return state
-        const next = updatePlayer(state, (player) => ({
-          ...player,
-          [area]: player[area].map((row, r) =>
-            r === action.row ? row.map((cell, c) => (c === action.col ? true : cell)) : row,
-          ),
-        }))
-        return { ...next, pendingChoices: next.pendingChoices.slice(1) }
-      }
-
       return updatePlayer(state, (player) => ({
         ...player,
         [area]: player[area].map((row, r) =>
@@ -137,28 +118,12 @@ function apply(state: GameState, action: Action): GameState {
         purple: player.purple.map((value, index) => (index === action.index ? action.value : value)),
       }))
 
-    case 'toggleBonusUsed':
+    case 'useBonus':
+      // Einbahnstraße: zurück geht es nur über den Verlauf.
+      if (state.player.usedBonuses.includes(action.sourceId)) return state
       return updatePlayer(state, (player) => ({
         ...player,
-        usedBonuses: player.usedBonuses.includes(action.sourceId)
-          ? player.usedBonuses.filter((id) => id !== action.sourceId)
-          : [...player.usedBonuses, action.sourceId],
-      }))
-
-    case 'addManualBonus':
-      return updatePlayer(state, (player) => ({
-        ...player,
-        manualBonuses: [
-          ...player.manualBonuses,
-          { id: nextId('manual'), bonus: action.bonus, origin: action.origin },
-        ],
-      }))
-
-    case 'removeManualBonus':
-      return updatePlayer(state, (player) => ({
-        ...player,
-        manualBonuses: player.manualBonuses.filter((entry) => entry.id !== action.id),
-        usedBonuses: player.usedBonuses.filter((id) => id !== action.id),
+        usedBonuses: [...player.usedBonuses, action.sourceId],
       }))
 
     case 'setTableSize':

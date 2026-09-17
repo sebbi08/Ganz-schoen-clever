@@ -1,4 +1,5 @@
 import type { BonusId } from '../game/layout'
+import type { AreaMode } from '../game/bonuses'
 import { nextFreeIndex } from '../game/scoring'
 import { BonusChip } from './BonusChip'
 
@@ -11,7 +12,7 @@ interface Props {
   values: (number | null)[]
   bonuses: (BonusId | undefined)[]
   multipliers?: (1 | 2 | 3)[]
-  locked: boolean
+  mode: AreaMode
   onSet: (index: number, value: number) => void
 }
 
@@ -28,14 +29,17 @@ export function NumberRow({
   values,
   bonuses,
   multipliers,
-  locked,
+  mode,
   onSet,
 }: Props) {
+  const locked = mode === 'locked'
+  // Bei der Auswahl "Kreuz oder 6" ist hier nur die 6 erlaubt.
+  const onlySix = mode === 'pick'
   const target = nextFreeIndex(values)
   const targetMultiplier = target === null ? 1 : (multipliers?.[target] ?? 1)
 
   return (
-    <section className={`area ${color}${locked ? ' locked' : ''}`}>
+    <section className={`area ${color}${locked ? ' locked' : ''}${onlySix ? ' picking' : ''}`}>
       <div className="area-head">
         <span>{title}</span>
         <span className="points">{points}</span>
@@ -76,7 +80,7 @@ export function NumberRow({
           <button
             key={value}
             className="value-btn"
-            disabled={locked || target === null}
+            disabled={locked || target === null || (onlySix && value !== 6)}
             onClick={() => target !== null && onSet(target, value)}
             aria-label={`${label}: ${value} eintragen`}
           >

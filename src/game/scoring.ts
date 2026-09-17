@@ -190,16 +190,14 @@ export function foxCount(player: PlayerState): number {
 
 /**
  * Vorrat: Boni, die nicht sofort verarbeitet werden, sondern liegen bleiben,
- * bis man sie einlöst – Wiederholungswürfe, +1 und der mehrdeutige
- * Rundenbonus. Farbboni und Füchse tauchen hier nicht auf, die laufen
- * automatisch durch (siehe bonuses.ts).
+ * bis man sie einlöst – Wiederholungswürfe und +1. Farbboni und Füchse
+ * tauchen hier nicht auf, die laufen automatisch durch (siehe bonuses.ts).
  */
 export function openBonuses(player: PlayerState): EarnedBonus[] {
   const used = new Set(player.usedBonuses)
-  return earnedBonuses(player).filter((entry) => {
-    const kind = BONUSES[entry.bonus].kind
-    return (kind === 'action' || kind === 'manual') && !used.has(entry.sourceId)
-  })
+  return earnedBonuses(player).filter(
+    (entry) => BONUSES[entry.bonus].kind === 'action' && !used.has(entry.sourceId),
+  )
 }
 
 /** Gibt es im gelben Raster noch ein freies Feld? */

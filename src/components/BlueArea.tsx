@@ -1,9 +1,8 @@
 import { BLUE_COLUMN_BONUS, BLUE_GRID, BLUE_POINTS, BLUE_ROW_BONUS } from '../game/layout'
 import { blueMarkCount, isBlueGap } from '../game/scoring'
+import type { AreaMode } from '../game/bonuses'
 import type { PlayerState } from '../game/types'
 import { BonusChip } from './BonusChip'
-
-import type { AreaMode } from './YellowArea'
 
 interface Props {
   player: PlayerState

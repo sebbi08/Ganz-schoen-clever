@@ -1,12 +1,20 @@
 import { BONUSES, GREEN_STEPS, NUMBER_BONUS } from './layout'
-import type { PickBonus } from './layout'
+import type { Area, PickBonus } from './layout'
 import {
   earnedBonuses,
   hasFreeBlue,
   hasFreeYellow,
+  isBlueGap,
   nextFreeIndex,
 } from './scoring'
-import type { EarnedBonus, GameState, Notification, PlayerState } from './types'
+import type { Action } from './state'
+import type {
+  EarnedBonus,
+  GameState,
+  Notification,
+  PendingChoice,
+  PlayerState,
+} from './types'
 
 /**
  * Sofortverarbeitung der Farbboni.
@@ -53,6 +61,19 @@ function markResolved(state: GameState, sourceId: string): GameState {
   }))
 }
 
+/** Gibt es für diesen Bonus überhaupt noch ein freies Ziel? */
+function hasTarget(player: PlayerState, bonus: PickBonus): boolean {
+  if (bonus === 'yellow') return hasFreeYellow(player)
+  if (bonus === 'blue') return hasFreeBlue(player)
+  return (
+    hasFreeYellow(player) ||
+    hasFreeBlue(player) ||
+    player.green < GREEN_STEPS.length ||
+    nextFreeIndex(player.orange) !== null ||
+    nextFreeIndex(player.purple) !== null
+  )
+}
+
 /** Wickelt genau einen frisch freigeschalteten Bonus ab. */
 function applyBonus(state: GameState, entry: EarnedBonus): GameState {
   const info = BONUSES[entry.bonus]
@@ -82,9 +103,9 @@ function applyBonus(state: GameState, entry: EarnedBonus): GameState {
     }
 
     case 'yellow':
-    case 'blue': {
-      const free = entry.bonus === 'yellow' ? hasFreeYellow(player) : hasFreeBlue(player)
-      if (!free) {
+    case 'blue':
+    case 'anyCrossOr6': {
+      if (!hasTarget(player, entry.bonus)) {
         return notify(next, `${info.label}: kein Feld mehr frei, Bonus verfällt`, info.color)
       }
       return {
@@ -97,12 +118,11 @@ function applyBonus(state: GameState, entry: EarnedBonus): GameState {
     }
 
     case 'fox':
-      return notify(next, `Fuchs aus ${entry.origin}`, 'fox')
+      return notify(next, `Fuchs · ${entry.origin}`, 'fox')
 
     default:
-      // Wiederholungswurf, +1 und der mehrdeutige Rundenbonus wandern in den
-      // Vorrat und werden dort von Hand abgehakt.
-      return notify(next, `${info.label} erhalten`, info.color)
+      // Wiederholungswurf und +1 wandern in den Vorrat.
+      return notify(next, `${info.label} · ${entry.origin}`, info.color)
   }
 }
 
@@ -142,4 +162,50 @@ export function resolveBonuses(state: GameState): GameState {
   }
 
   return current
+}
+
+/* --------------------------------------------------------- Zwangsauswahl */
+
+export type AreaMode = 'normal' | 'pick' | 'locked'
+
+/**
+ * Wie ein Bereich auf Klicks reagiert, solange eine Auswahl offen ist.
+ * `pick` heißt bei Gelb und Blau "nur freie Felder", bei Grün "nur das
+ * nächste Feld" und bei Orange und Lila "nur eine 6".
+ */
+export function areaMode(choice: PendingChoice | null, area: Area): AreaMode {
+  if (!choice) return 'normal'
+  if (choice.bonus === 'anyCrossOr6') return 'pick'
+  return choice.bonus === area ? 'pick' : 'locked'
+}
+
+/** Erfüllt dieser Zug die offene Auswahl? */
+export function satisfiesChoice(
+  state: GameState,
+  choice: PendingChoice,
+  action: Action,
+): boolean {
+  const player = state.player
+  const any = choice.bonus === 'anyCrossOr6'
+
+  switch (action.type) {
+    case 'toggleYellow':
+      return (
+        (any || choice.bonus === 'yellow') && !player.yellow[action.row][action.col]
+      )
+    case 'toggleBlue':
+      return (
+        (any || choice.bonus === 'blue') &&
+        !isBlueGap(action.row, action.col) &&
+        !player.blue[action.row][action.col]
+      )
+    case 'setGreen':
+      return any && action.count === player.green + 1
+    case 'setOrange':
+      return any && action.value === 6 && action.index === nextFreeIndex(player.orange)
+    case 'setPurple':
+      return any && action.value === 6 && action.index === nextFreeIndex(player.purple)
+    default:
+      return false
+  }
 }

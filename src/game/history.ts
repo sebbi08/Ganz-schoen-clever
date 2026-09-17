@@ -1,4 +1,5 @@
 import { BLUE_GRID, BONUSES } from './layout'
+import { earnedBonuses } from './scoring'
 import type { BonusInfo } from './layout'
 import type { Action } from './state'
 import { createGame, migrateState, reducer } from './state'
@@ -50,12 +51,15 @@ export function describe(state: GameState, action: Action): Described {
       return action.value === null
         ? { label: `Lila Feld ${action.index + 1} geleert`, tone: 'purple' }
         : { label: `Lila ${action.value} · Feld ${action.index + 1}`, tone: 'purple' }
-    case 'toggleBonusUsed':
-      return { label: 'Bonus abgehakt', tone: 'neutral' }
-    case 'addManualBonus':
-      return { label: `${BONUSES[action.bonus].label} ergänzt`, tone: BONUSES[action.bonus].color }
-    case 'removeManualBonus':
-      return { label: 'Bonus entfernt', tone: 'neutral' }
+    case 'useBonus': {
+      const bonus = earnedBonuses(state.player).find(
+        (entry) => entry.sourceId === action.sourceId,
+      )?.bonus
+      return {
+        label: bonus ? `${BONUSES[bonus].label} eingelöst` : 'Bonus eingelöst',
+        tone: 'neutral',
+      }
+    }
     case 'skipChoice':
       return { label: 'Bonus verfallen lassen', tone: 'fox' }
     case 'completeRound':
@@ -75,9 +79,7 @@ const UNDOABLE: Action['type'][] = [
   'setGreen',
   'setOrange',
   'setPurple',
-  'toggleBonusUsed',
-  'addManualBonus',
-  'removeManualBonus',
+  'useBonus',
   'skipChoice',
   'completeRound',
 ]

@@ -17,8 +17,8 @@ export function ChoiceBanner({ choice, remaining, onSkip }: Props) {
         <strong>{info.label} setzen</strong>
         <span>
           {choice.origin}
-          {remaining > 1 && ` · noch ${remaining} Boni offen`} · Der Block ist gesperrt, bis das
-          Kreuz steht.
+          {remaining > 1 && ` · noch ${remaining} Boni offen`} · Der Block ist gesperrt, bis der
+          Bonus gesetzt ist.
         </span>
       </span>
       <button className="btn ghost" onClick={onSkip} title="Diesen Bonus ungenutzt verfallen lassen">

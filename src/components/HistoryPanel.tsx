@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import type { HistoryEntry } from '../game/history'
 
 interface Props {
@@ -6,17 +7,25 @@ interface Props {
 }
 
 const SHOWN = 8
+const ARMED_MS = 4000
 
 /**
- * Globaler Verlauf. Ein Klick nimmt den gewählten Zug und alles danach
- * zurück – einschließlich der Boni, die dabei ausgelöst wurden.
+ * Globaler Verlauf. Nur der jeweils letzte Zug lässt sich zurücknehmen, und
+ * das erst auf den zweiten Klick – der erste fragt nach.
  */
 export function HistoryPanel({ past, onUndo }: Props) {
-  // Neueste zuerst; der Index von hinten ist zugleich die Anzahl der Schritte.
-  const recent = past
-    .map((entry, index) => ({ entry, steps: past.length - index }))
-    .reverse()
-    .slice(0, SHOWN)
+  const [armed, setArmed] = useState(false)
+  const last = past[past.length - 1]
+
+  // Die Rückfrage verfällt von selbst, damit sie nicht scharf liegen bleibt.
+  useEffect(() => {
+    if (!armed) return
+    const timer = setTimeout(() => setArmed(false), ARMED_MS)
+    return () => clearTimeout(timer)
+  }, [armed])
+
+  // Ein neuer Zug entschärft eine offene Rückfrage.
+  useEffect(() => setArmed(false), [past.length])
 
   return (
     <div className="panel">
@@ -26,27 +35,29 @@ export function HistoryPanel({ past, onUndo }: Props) {
         <p className="empty-hint">Noch keine Züge.</p>
       ) : (
         <>
-          <button className="btn undo-btn" onClick={() => onUndo(1)}>
-            ↶ Letzten Zug zurücknehmen
+          <button
+            className={`btn undo-btn${armed ? ' armed' : ''}`}
+            onClick={() => {
+              if (!armed) {
+                setArmed(true)
+                return
+              }
+              setArmed(false)
+              onUndo(1)
+            }}
+          >
+            {armed ? `„${last.label}" wirklich zurücknehmen?` : '↶ Letzten Zug zurücknehmen'}
           </button>
           <ol className="history-list">
-            {recent.map(({ entry, steps }) => (
-              <li key={steps}>
-                <button
-                  className={`history-row ${entry.tone}`}
-                  onClick={() => onUndo(steps)}
-                  title={
-                    steps === 1
-                      ? 'Diesen Zug zurücknehmen'
-                      : `Diesen Zug und die ${steps - 1} danach zurücknehmen`
-                  }
-                >
+            {past
+              .slice(-SHOWN)
+              .reverse()
+              .map((entry, index) => (
+                <li key={past.length - index} className={`history-row ${entry.tone}`}>
                   <span className="history-dot" />
                   <span className="label">{entry.label}</span>
-                  <span className="tick">↶{steps > 1 && ` ${steps}`}</span>
-                </button>
-              </li>
-            ))}
+                </li>
+              ))}
           </ol>
         </>
       )}

@@ -95,7 +95,8 @@ describe('Verlauf', () => {
   it('begrenzt die Länge', () => {
     let state = createHistory(1)
     for (let index = 0; index < MAX_HISTORY + 12; index++) {
-      state = historyReducer(state, { type: 'addManualBonus', bonus: 'fox', origin: 'Test' })
+      // Hin und her schalten – jeder Zug landet im Verlauf.
+      state = historyReducer(state, { type: 'toggleYellow', row: 0, col: 0 })
     }
     expect(state.past).toHaveLength(MAX_HISTORY)
   })
@@ -135,7 +136,7 @@ describe('Rundenbonus', () => {
   it('meldet sich per Toast', () => {
     const state = run({ type: 'completeRound' })
     expect(state.present.notifications.map((n) => n.text)).toContain(
-      'Rundenbonus 2: +1 auf einen Würfel',
+      '+1 auf einen Würfel · Rundenbonus 2',
     )
   })
 
@@ -155,6 +156,10 @@ describe('Rundenbonus', () => {
     let state = createHistory(1) // ein Spieler → sechs Runden
     for (let index = 0; index < 6; index++) {
       state = historyReducer(state, { type: 'completeRound' })
+      // Runde 4 verlangt ein Kreuz; erst danach geht es weiter.
+      if (state.present.pendingChoices.length > 0) {
+        state = historyReducer(state, { type: 'toggleYellow', row: 0, col: 0 })
+      }
     }
     expect(active(state).manualBonuses.map((entry) => entry.bonus)).toEqual([
       'reroll',
@@ -174,6 +179,8 @@ describe('Rundenbonus', () => {
     }
     expect(verlauf).toEqual([2, 3, 4, 4, 4, 4])
     expect(active(state).manualBonuses).toHaveLength(4)
+    // Die letzte Runde verlangt noch ihr Kreuz.
+    expect(state.present.pendingChoices[0]?.bonus).toBe('anyCrossOr6')
   })
 
   it('lässt sich über den Verlauf zurücknehmen', () => {

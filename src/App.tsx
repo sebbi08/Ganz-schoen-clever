@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer } from 'react'
 import { ORANGE_STEPS, PURPLE_STEPS } from './game/layout'
-import type { BonusId } from './game/layout'
+import { areaMode } from './game/bonuses'
 import { scoreSheet } from './game/scoring'
 import { createHistory, historyReducer, loadHistory, saveHistory } from './game/history'
 import { BlueArea } from './components/BlueArea'
@@ -13,7 +13,6 @@ import { RoundBar } from './components/RoundBar'
 import { ScorePanel } from './components/ScorePanel'
 import { Toasts } from './components/Toasts'
 import { YellowArea } from './components/YellowArea'
-import type { AreaMode } from './components/YellowArea'
 
 const ORANGE_BONUSES = ORANGE_STEPS.map((step) => step.bonus)
 const ORANGE_MULTIPLIERS = ORANGE_STEPS.map((step) => step.multiplier)
@@ -25,13 +24,6 @@ export default function App() {
   const player = state.player
   const score = scoreSheet(player)
   const choice = state.pendingChoices[0] ?? null
-  const locked = choice !== null
-
-  // Bei erzwungener Auswahl ist nur der geforderte Bereich bedienbar.
-  const areaMode = (area: 'yellow' | 'blue'): AreaMode => {
-    if (!choice) return 'normal'
-    return choice.bonus === area ? 'pick' : 'locked'
-  }
 
   const undo = useCallback((steps: number) => dispatch({ type: 'undo', steps }), [])
   const dismiss = useCallback((id: string) => dispatch({ type: 'dismissNotification', id }), [])
@@ -49,10 +41,6 @@ export default function App() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [undo])
-
-  function addManual(bonus: BonusId, origin = 'Von Hand ergänzt') {
-    dispatch({ type: 'addManualBonus', bonus, origin })
-  }
 
   return (
     <div className="app">
@@ -82,19 +70,21 @@ export default function App() {
         onComplete={() => dispatch({ type: 'completeRound' })}
       />
 
+      <BonusPanel player={player} onUse={(sourceId) => dispatch({ type: 'useBonus', sourceId })} />
+
       <div className="columns">
         <main style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="grids">
             <YellowArea
               player={player}
               points={score.yellow}
-              mode={areaMode('yellow')}
+              mode={areaMode(choice, 'yellow')}
               onToggle={(row, col) => dispatch({ type: 'toggleYellow', row, col })}
             />
             <BlueArea
               player={player}
               points={score.blue}
-              mode={areaMode('blue')}
+              mode={areaMode(choice, 'blue')}
               onToggle={(row, col) => dispatch({ type: 'toggleBlue', row, col })}
             />
           </div>
@@ -102,7 +92,7 @@ export default function App() {
           <GreenRow
             player={player}
             points={score.green}
-            locked={locked}
+            mode={areaMode(choice, 'green')}
             onSet={(count) => dispatch({ type: 'setGreen', count })}
           />
 
@@ -114,7 +104,7 @@ export default function App() {
             values={player.orange}
             bonuses={ORANGE_BONUSES}
             multipliers={ORANGE_MULTIPLIERS}
-            locked={locked}
+            mode={areaMode(choice, 'orange')}
             onSet={(index, value) => dispatch({ type: 'setOrange', index, value })}
           />
 
@@ -125,7 +115,7 @@ export default function App() {
             points={score.purple}
             values={player.purple}
             bonuses={PURPLE_BONUSES}
-            locked={locked}
+            mode={areaMode(choice, 'purple')}
             onSet={(index, value) => dispatch({ type: 'setPurple', index, value })}
           />
         </main>
@@ -133,12 +123,6 @@ export default function App() {
         <aside className="sidebar">
           <ScorePanel score={score} />
           <HistoryPanel past={history.past} onUndo={undo} />
-          <BonusPanel
-            player={player}
-            onToggleUsed={(sourceId) => dispatch({ type: 'toggleBonusUsed', sourceId })}
-            onAddManual={(bonus) => addManual(bonus)}
-            onRemoveManual={(id) => dispatch({ type: 'removeManualBonus', id })}
-          />
         </aside>
       </div>
 
