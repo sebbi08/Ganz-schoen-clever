@@ -75,7 +75,7 @@ function hasTarget(player: PlayerState, bonus: PickBonus): boolean {
 }
 
 /** Wickelt genau einen frisch freigeschalteten Bonus ab. */
-function applyBonus(state: GameState, entry: EarnedBonus): GameState {
+export function applyBonus(state: GameState, entry: EarnedBonus): GameState {
   const info = BONUSES[entry.bonus]
   const player = state.player
   let next = markResolved(state, entry.sourceId)
@@ -148,17 +148,39 @@ export function resolveBonuses(state: GameState): GameState {
       pendingChoices: current.pendingChoices.filter((choice) => earnedIds.has(choice.sourceId)),
     }
   }
+  if (current.bonusQueue.some((entry) => !earnedIds.has(entry.sourceId))) {
+    current = {
+      ...current,
+      bonusQueue: current.bonusQueue.filter((entry) => earnedIds.has(entry.sourceId)),
+    }
+  }
 
   // Ketten auflösen; die Obergrenze ist eine reine Notbremse.
   for (let guard = 0; guard < 60; guard++) {
     const active = current.player
     const resolved = new Set(active.resolvedBonuses)
     const pending = new Set(current.pendingChoices.map((choice) => choice.sourceId))
-    const entry = earnedBonuses(active).find(
-      (candidate) => !resolved.has(candidate.sourceId) && !pending.has(candidate.sourceId),
+    const queued = new Set(current.bonusQueue.map((entry) => entry.sourceId))
+    const fresh = earnedBonuses(active).filter(
+      (candidate) =>
+        !resolved.has(candidate.sourceId) &&
+        !pending.has(candidate.sourceId) &&
+        !queued.has(candidate.sourceId),
     )
-    if (!entry) break
-    current = applyBonus(current, entry)
+    const open = [...current.bonusQueue, ...fresh]
+    if (open.length === 0) break
+
+    // Genau ein offener Bonus: Es gibt nichts zu entscheiden.
+    if (open.length === 1) {
+      current = applyBonus({ ...current, bonusQueue: [] }, open[0])
+      continue
+    }
+
+    // Mehrere auf einen Schlag: Die Regel überlässt die Reihenfolge dem
+    // Spieler, also warten sie hier auf seinen Klick. Ohne Zuwachs bleibt
+    // der Zustand, wie er ist – sonst gälte jeder Aufruf als Änderung.
+    if (fresh.length > 0) current = { ...current, bonusQueue: open }
+    break
   }
 
   return current

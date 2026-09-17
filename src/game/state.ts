@@ -1,5 +1,5 @@
 import { ROUNDS, roundsFor } from './layout'
-import { resolveBonuses, satisfiesChoice } from './bonuses'
+import { applyBonus, resolveBonuses, satisfiesChoice } from './bonuses'
 import { createPlayer, earnedBonuses, isBlueGap } from './scoring'
 import type { GameState, PlayerState } from './types'
 
@@ -18,6 +18,7 @@ export function createGame(tableSize = 1): GameState {
       tableSize,
       claimedRounds: [],
       pendingChoices: [],
+      bonusQueue: [],
       notifications: [],
     }),
   )
@@ -56,6 +57,7 @@ export type Action =
   | { type: 'setTableSize'; size: number }
   | { type: 'completeRound' }
   | { type: 'skipChoice' }
+  | { type: 'resolveBonus'; sourceId: string }
   | { type: 'dismissNotification'; id: string }
   | { type: 'newGame' }
   | { type: 'replace'; state: GameState }
@@ -77,6 +79,14 @@ const ALWAYS_ALLOWED: Action['type'][] = [
 
 export function reducer(state: GameState, action: Action): GameState {
   const choice = state.pendingChoices[0]
+
+  // Warten mehrere Boni auf ihre Ausführung, geht nur das: einen davon
+  // auswählen. Eine offene Zwangsauswahl hat noch Vorrang.
+  if (!choice && state.bonusQueue.length > 0) {
+    if (action.type !== 'resolveBonus' && !ALWAYS_ALLOWED.includes(action.type)) return state
+    return resolveBonuses(apply(state, action))
+  }
+
   if (!choice) return resolveBonuses(apply(state, action))
 
   // Der Zug erfüllt die Auswahl: ausführen und den Bonus abhaken.
@@ -140,7 +150,15 @@ function apply(state: GameState, action: Action): GameState {
     }
 
     case 'skipChoice':
+      if (state.pendingChoices.length === 0) return state
       return { ...state, pendingChoices: state.pendingChoices.slice(1) }
+
+    case 'resolveBonus': {
+      const entry = state.bonusQueue.find((candidate) => candidate.sourceId === action.sourceId)
+      if (!entry) return state
+      const rest = state.bonusQueue.filter((candidate) => candidate.sourceId !== action.sourceId)
+      return applyBonus({ ...state, bonusQueue: rest }, entry)
+    }
 
     case 'dismissNotification':
       return {
@@ -193,6 +211,7 @@ export function migrateState(parsed: LegacyGameState): GameState {
     tableSize: parsed.tableSize ?? parsed.players?.length ?? 1,
     claimedRounds: parsed.claimedRounds ?? [],
     pendingChoices: parsed.pendingChoices ?? [],
+    bonusQueue: parsed.bonusQueue ?? [],
     notifications: [],
     player: migratePlayer(player),
   }

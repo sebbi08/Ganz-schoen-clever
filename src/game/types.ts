@@ -48,6 +48,12 @@ export interface GameState {
   claimedRounds: number[]
   /** Offene Zwangsauswahl; solange etwas darin liegt, ist der Block gesperrt. */
   pendingChoices: PendingChoice[]
+  /**
+   * Boni, die gleichzeitig freigeschaltet wurden und noch auf ihre
+   * Ausführung warten. Die Reihenfolge bestimmt der Spieler, deshalb bleibt
+   * der Block gesperrt, bis die Liste leer ist.
+   */
+  bonusQueue: EarnedBonus[]
   /** Kurzmeldungen über verarbeitete Boni. */
   notifications: Notification[]
 }

@@ -124,7 +124,16 @@ describe('Vorrat und Füchse', () => {
   })
 
   it('zählt Füchse ohne Zutun', () => {
-    const state = run({ type: 'setGreen', count: 7 }) // grünes Feld 7 → Fuchs
+    // Feld für Feld bis zum Fuchs auf Feld 7; Feld 6 verlangt unterwegs ein
+    // blaues Kreuz.
+    let state = createGame(1)
+    for (let field = 1; field <= 7; field++) {
+      state = reducer(state, { type: 'setGreen', count: field })
+      if (state.pendingChoices.length > 0) {
+        state = reducer(state, { type: 'markBlue', row: 1, col: 0 })
+      }
+    }
+    expect(active(state).green).toBe(7)
     expect(state.notifications.some((n) => n.text.startsWith('Fuchs'))).toBe(true)
     expect(openBonuses(active(state)).some((entry) => entry.bonus === 'fox')).toBe(false)
   })
@@ -225,5 +234,49 @@ describe('Vorrat einlösen', () => {
     const after = reducer(state, { type: 'useBonus', sourceId: bonus.sourceId })
     expect(after).toBe(state)
     expect(openBonuses(after.player)).toHaveLength(0)
+  })
+})
+
+describe('Mehrere Boni auf einmal', () => {
+  /**
+   * Das blaue Feld 6 schließt Reihe 2 (gelbes Kreuz) und Spalte 2 (grünes
+   * Kreuz) im selben Zug ab.
+   */
+  const blueRowAndColumn: Action[] = [
+    { type: 'markBlue', row: 1, col: 0 },
+    { type: 'markBlue', row: 1, col: 2 },
+    { type: 'markBlue', row: 1, col: 3 },
+    { type: 'markBlue', row: 0, col: 1 },
+    { type: 'markBlue', row: 2, col: 1 },
+    { type: 'markBlue', row: 1, col: 1 },
+  ]
+
+  it('legt sie zur Auswahl, statt selbst zu entscheiden', () => {
+    const state = run(...blueRowAndColumn)
+    expect(state.bonusQueue.map((entry) => entry.bonus)).toEqual(['yellow', 'green'])
+    // Noch ist nichts passiert.
+    expect(active(state).green).toBe(0)
+    expect(state.pendingChoices).toHaveLength(0)
+  })
+
+  it('sperrt den Block, bis sie abgearbeitet sind', () => {
+    const state = run(...blueRowAndColumn)
+    expect(reducer(state, { type: 'setOrange', index: 0, value: 4 })).toBe(state)
+    expect(reducer(state, { type: 'completeRound' })).toBe(state)
+  })
+
+  it('führt den gewählten zuerst aus und den letzten dann von selbst', () => {
+    let state = run(...blueRowAndColumn)
+    // Erst das grüne Kreuz, danach bleibt nur noch das gelbe – das braucht
+    // keine Rückfrage mehr und wird direkt zur Zwangsauswahl.
+    state = reducer(state, { type: 'resolveBonus', sourceId: 'blue-col-1' })
+    expect(active(state).green).toBe(1)
+    expect(state.bonusQueue).toHaveLength(0)
+    expect(state.pendingChoices.map((choice) => choice.bonus)).toEqual(['yellow'])
+  })
+
+  it('nimmt nur Boni aus der Liste an', () => {
+    const state = run(...blueRowAndColumn)
+    expect(reducer(state, { type: 'resolveBonus', sourceId: 'gibt-es-nicht' })).toBe(state)
   })
 })

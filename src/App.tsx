@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useReducer } from 'react'
 import { ORANGE_STEPS, PURPLE_STEPS } from './game/layout'
 import { areaMode } from './game/bonuses'
+import type { AreaMode } from './game/bonuses'
+import type { Area } from './game/layout'
 import { scoreSheet } from './game/scoring'
 import { createHistory, historyReducer, loadHistory, saveHistory } from './game/history'
 import { BlueArea } from './components/BlueArea'
 import { BonusPanel } from './components/BonusPanel'
+import { BonusQueue } from './components/BonusQueue'
 import { ChoiceBanner } from './components/ChoiceBanner'
 import { GreenRow } from './components/GreenRow'
 import { HistoryPanel } from './components/HistoryPanel'
@@ -24,6 +27,9 @@ export default function App() {
   const player = state.player
   const score = scoreSheet(player)
   const choice = state.pendingChoices[0] ?? null
+  // Warten mehrere Boni auf ihre Reihenfolge, ist der Block ebenfalls dicht.
+  const queued = state.bonusQueue.length > 0
+  const modeFor = (area: Area): AreaMode => (queued ? 'locked' : areaMode(choice, area))
 
   const undo = useCallback((steps: number) => dispatch({ type: 'undo', steps }), [])
   const redo = useCallback((steps: number) => dispatch({ type: 'redo', steps }), [])
@@ -64,6 +70,13 @@ export default function App() {
         />
       )}
 
+      {!choice && queued && (
+        <BonusQueue
+          queue={state.bonusQueue}
+          onResolve={(sourceId) => dispatch({ type: 'resolveBonus', sourceId })}
+        />
+      )}
+
       <RoundBar
         round={state.round}
         tableSize={state.tableSize}
@@ -80,13 +93,13 @@ export default function App() {
             <YellowArea
               player={player}
               points={score.yellow}
-              mode={areaMode(choice, 'yellow')}
+              mode={modeFor('yellow')}
               onMark={(row, col) => dispatch({ type: 'markYellow', row, col })}
             />
             <BlueArea
               player={player}
               points={score.blue}
-              mode={areaMode(choice, 'blue')}
+              mode={modeFor('blue')}
               onMark={(row, col) => dispatch({ type: 'markBlue', row, col })}
             />
           </div>
@@ -94,7 +107,7 @@ export default function App() {
           <GreenRow
             player={player}
             points={score.green}
-            mode={areaMode(choice, 'green')}
+            mode={modeFor('green')}
             onSet={(count) => dispatch({ type: 'setGreen', count })}
           />
 
@@ -106,7 +119,7 @@ export default function App() {
             values={player.orange}
             bonuses={ORANGE_BONUSES}
             multipliers={ORANGE_MULTIPLIERS}
-            mode={areaMode(choice, 'orange')}
+            mode={modeFor('orange')}
             onSet={(index, value) => dispatch({ type: 'setOrange', index, value })}
           />
 
@@ -117,7 +130,7 @@ export default function App() {
             points={score.purple}
             values={player.purple}
             bonuses={PURPLE_BONUSES}
-            mode={areaMode(choice, 'purple')}
+            mode={modeFor('purple')}
             onSet={(index, value) => dispatch({ type: 'setPurple', index, value })}
           />
         </main>

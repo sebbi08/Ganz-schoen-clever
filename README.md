@@ -29,6 +29,10 @@ keine Würfelergebnisse. Sie kümmert sich nur um Block, Punkte und Boni.
     blaue Feld, das nächste grüne, oder eine 6 in Orange oder Lila.
   - Ketten lösen sich von selbst auf: Schreibt ein Bonus in ein Feld, das
     seinerseits einen Bonus trägt, wird auch der sofort abgearbeitet.
+  - *Mehrere Boni auf einmal* – etwa ein blaues Kreuz, das Reihe und Spalte
+    zugleich abschließt – werden zur Auswahl gestellt: Der angeklickte kommt
+    zuerst dran, denn die Reihenfolge gehört laut Regel dem Spieler. Bleibt
+    nur noch einer übrig, läuft er ohne Rückfrage durch.
 - **Vorrat wie auf dem Block**, direkt unter der Rundenleiste:
   Wiederholungswurf und Zusatzwürfel (auf dem Block das »+1«-Symbol: einen
   der sechs Würfel zusätzlich nutzen) haben je eine Leiste mit acht Kreisen. Jeder

@@ -69,6 +69,12 @@ export function describe(state: GameState, action: Action): Described {
         tone: 'neutral',
       }
     }
+    case 'resolveBonus': {
+      const entry = state.bonusQueue.find((candidate) => candidate.sourceId === action.sourceId)
+      if (!entry) return { label: 'Bonus eingetragen', tone: 'neutral' }
+      const info = BONUSES[entry.bonus]
+      return { label: `${info.label} · ${entry.origin}`, tone: info.color }
+    }
     case 'skipChoice':
       return { label: 'Bonus verfallen lassen', tone: 'fox' }
     case 'completeRound':
@@ -90,6 +96,7 @@ const UNDOABLE: Action['type'][] = [
   'setPurple',
   'useBonus',
   'skipChoice',
+  'resolveBonus',
   'completeRound',
 ]
 
@@ -98,6 +105,7 @@ function changesBoard(before: GameState, after: GameState): boolean {
   return (
     before.player !== after.player ||
     before.pendingChoices !== after.pendingChoices ||
+    before.bonusQueue !== after.bonusQueue ||
     before.round !== after.round ||
     before.claimedRounds !== after.claimedRounds
   )
